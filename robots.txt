@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://hashirjunaid.me/sitemap.xml

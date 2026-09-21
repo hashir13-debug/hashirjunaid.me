@@ -1,0 +1,639 @@
+/* ============================================================================
+   Hashir Junaid — portfolio (v3, light)
+
+   Asked for: a light theme in the spirit of the reference site, different
+   fonts, far less weight on the cards, certificates as a side note rather than
+   a headline, a smaller CTA, Systems Limited and Axon Systems given real
+   prominence, and something creative of his own.
+
+   The creative piece is a delivery rider on a road fixed to the bottom of the
+   screen. As you scroll he rides from left to right, the sky behind the road
+   goes from day to night, and each section's stop lights up as he passes it.
+   Riders are what half of Hashir's software is about, and the day-to-night
+   ride is his own line: the real work happens at night.
+   ========================================================================= */
+
+:root {
+  --pf-bg:      #F6F7FB;
+  --pf-bg-2:    #EEF1F8;
+  --pf-card:    #FFFFFF;
+  --pf-line:    #E3E7F0;
+  --pf-line-2:  #CED5E4;
+
+  --pf-ink:     #14203A;
+  --pf-ink-2:   #4B5773;
+  --pf-ink-3:   #8791A8;
+
+  --pf-orange:  #F2670E;   /* the rider's box */
+  --pf-orange-2:#FF9A3D;
+  --pf-blue:    #2F5BEA;
+  --pf-night:   #0B1733;   /* where the ride ends */
+  --pf-night-2: #132453;
+
+  --pf-display: "Sora", "Inter", system-ui, sans-serif;
+  --pf-body:    "Inter", system-ui, sans-serif;
+  --pf-mono:    "IBM Plex Mono", ui-monospace, monospace;
+
+  --pf-ease:   cubic-bezier(0.16, 1, 0.3, 1);
+  --pf-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --pf-road:   72px;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+[data-brand="portfolio"] { overflow-x: clip; scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { [data-brand="portfolio"] { scroll-behavior: auto; } }
+
+[data-brand="portfolio"] body {
+  margin: 0;
+  overflow-x: clip;
+  background: var(--pf-bg);
+  color: var(--pf-ink);
+  font-family: var(--pf-body);
+  font-size: 17px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  padding-bottom: var(--pf-road);   /* the road never covers the last content */
+}
+:where([data-brand="portfolio"]) img { max-width: 100%; height: auto; display: block; }
+:where([data-brand="portfolio"]) a { color: inherit; }
+
+[data-brand="portfolio"] h1,
+[data-brand="portfolio"] h2,
+[data-brand="portfolio"] h3 {
+  font-family: var(--pf-display);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.04;
+  margin: 0;
+  text-wrap: balance;
+}
+[data-brand="portfolio"] h1 { font-size: clamp(2.8rem, 7.2vw, 6.2rem); }
+[data-brand="portfolio"] h2 { font-size: clamp(2rem, 4.4vw, 3.5rem); }
+[data-brand="portfolio"] h3 { font-size: clamp(1.15rem, 1.6vw, 1.4rem); letter-spacing: -0.015em; }
+[data-brand="portfolio"] p { margin: 0 0 1em; }
+[data-brand="portfolio"] ::selection { background: var(--pf-orange); color: #fff; }
+[data-brand="portfolio"] :focus-visible { outline: 3px solid var(--pf-orange); outline-offset: 3px; border-radius: 6px; }
+
+/* ------------------------------------------------------------ layout */
+
+.pf-wrap { width: min(1240px, 100% - 3rem); margin-inline: auto; position: relative; }
+.pf-narrow { width: min(820px, 100% - 3rem); margin-inline: auto; position: relative; }
+@media (max-width: 640px) { .pf-wrap, .pf-narrow { width: calc(100% - 1.75rem); } }
+
+.pf-section { padding-block: clamp(5rem, 10vw, 8.5rem); position: relative; }
+.pf-center { text-align: center; }
+.pf-center .pf-lede { margin-inline: auto; }
+
+.pf-eyebrow {
+  display: inline-block;
+  font-family: var(--pf-mono); font-size: .72rem;
+  letter-spacing: .16em; text-transform: uppercase;
+  color: var(--pf-orange);
+  background: color-mix(in srgb, var(--pf-orange) 11%, transparent);
+  border-radius: 100px; padding: .38rem .9rem;
+  margin: 0 0 1.3rem;
+}
+.pf-lede { font-size: clamp(1.05rem, 1.45vw, 1.25rem); color: var(--pf-ink-2); max-width: 58ch; }
+.pf-hi { color: var(--pf-orange); }
+.pf-hi-blue { color: var(--pf-blue); }
+
+/* ------------------------------------------------------------- nav */
+
+.pf-nav { position: fixed; inset: 1rem 0 auto 0; z-index: 60; pointer-events: none; }
+.pf-nav__in { display: flex; align-items: center; gap: 1rem; pointer-events: auto; }
+.pf-brand {
+  display: inline-flex; align-items: center; gap: .55rem;
+  font-family: var(--pf-display); font-weight: 700; font-size: .98rem;
+  text-decoration: none;
+  background: color-mix(in srgb, #fff 88%, transparent);
+  backdrop-filter: blur(14px);
+  border: 1px solid var(--pf-line); border-radius: 100px;
+  padding: .4rem .95rem .4rem .4rem;
+}
+.pf-brand img { width: 28px; height: 28px; border-radius: 9px; }
+.pf-links {
+  margin-inline: auto; display: flex; gap: .15rem;
+  background: color-mix(in srgb, #fff 88%, transparent);
+  backdrop-filter: blur(14px);
+  border: 1px solid var(--pf-line); border-radius: 100px; padding: .3rem;
+  box-shadow: 0 8px 24px -16px rgb(20 32 58 / .25);
+}
+.pf-links a {
+  font-size: .86rem; font-weight: 500; color: var(--pf-ink-2); text-decoration: none;
+  padding: .48rem .95rem; border-radius: 100px;
+  transition: background 300ms, color 300ms;
+}
+.pf-links a:hover { color: var(--pf-ink); background: var(--pf-bg-2); }
+.pf-links a.is-active { background: var(--pf-orange); color: #fff; }
+
+/* The CTA was far too loud. It is now a quiet pill that earns attention on hover. */
+.pf-cta {
+  display: inline-flex; align-items: center; gap: .45rem;
+  font-family: var(--pf-display); font-weight: 600; font-size: .84rem;
+  padding: .55rem 1.05rem; border-radius: 100px; text-decoration: none;
+  color: var(--pf-ink); background: #fff; border: 1px solid var(--pf-line-2);
+  transition: border-color 300ms, color 300ms, transform 300ms var(--pf-spring);
+}
+.pf-cta:hover { border-color: var(--pf-orange); color: var(--pf-orange); transform: translateY(-1px); }
+.pf-cta i { width: 7px; height: 7px; border-radius: 50%; background: #22C55E; box-shadow: 0 0 0 3px rgb(34 197 94 / .18); }
+
+@media (max-width: 900px) {
+  .pf-nav__in { flex-wrap: wrap; gap: .5rem; }
+  .pf-links { order: 3; width: 100%; margin: 0; overflow-x: auto; scrollbar-width: none; }
+  .pf-links::-webkit-scrollbar { display: none; }
+  .pf-links a { white-space: nowrap; }
+  .pf-cta { margin-left: auto; }
+}
+
+/* ------------------------------------------------------------ buttons */
+
+.pf-btn {
+  display: inline-flex; align-items: center; gap: .55rem;
+  font-family: var(--pf-display); font-weight: 600; font-size: .95rem;
+  padding: .85rem 1.5rem; border-radius: 100px; text-decoration: none;
+  color: #fff; background: var(--pf-ink);
+  transition: transform 400ms var(--pf-spring), background 300ms, box-shadow 300ms;
+}
+.pf-btn:hover { transform: translateY(-2px); background: var(--pf-orange);
+  box-shadow: 0 16px 34px -16px color-mix(in srgb, var(--pf-orange) 80%, transparent); }
+.pf-btn--ghost { background: transparent; color: var(--pf-ink); border: 1px solid var(--pf-line-2); }
+.pf-btn--ghost:hover { background: #fff; color: var(--pf-orange); border-color: var(--pf-orange); box-shadow: none; }
+.pf-btns { display: flex; flex-wrap: wrap; gap: .7rem; margin-top: 2.2rem; }
+.pf-center .pf-btns { justify-content: center; }
+
+/* ------------------------------------------------------------ hero */
+
+.pf-hero { min-height: calc(100svh - var(--pf-road)); display: grid; align-items: center; padding-block: 8rem 4rem; }
+.pf-hero__grid { display: grid; gap: clamp(2rem, 5vw, 5rem); grid-template-columns: minmax(0,1.3fr) minmax(0,.7fr); align-items: center; }
+@media (max-width: 880px) { .pf-hero__grid { grid-template-columns: 1fr; } .pf-portrait { max-width: 300px; } }
+
+.pf-hello { font-family: var(--pf-display); font-weight: 600; font-size: clamp(1.1rem, 1.8vw, 1.45rem); color: var(--pf-ink-2); margin-bottom: .5rem; }
+.pf-hello span { display: inline-block; animation: pf-wave 2.4s ease-in-out infinite; transform-origin: 70% 70%; }
+@keyframes pf-wave { 0%, 60%, 100% { transform: rotate(0); } 10%, 30% { transform: rotate(14deg); } 20%, 40% { transform: rotate(-8deg); } }
+@media (prefers-reduced-motion: reduce) { .pf-hello span { animation: none; } }
+
+.pf-rolepills { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: 1.4rem; }
+.pf-rolepill {
+  display: inline-flex; align-items: center; gap: .5rem;
+  font-size: .88rem; font-weight: 500;
+  background: #fff; border: 1px solid var(--pf-line); border-radius: 100px;
+  padding: .45rem .9rem .45rem .45rem;
+}
+.pf-rolepill img, .pf-rolepill b {
+  width: 24px; height: 24px; border-radius: 7px; flex: none;
+  display: grid; place-items: center; font-size: .66rem; font-weight: 800; color: #fff;
+}
+
+.pf-portrait { position: relative; justify-self: end; width: 100%; max-width: 400px; }
+.pf-portrait__img {
+  position: relative; border-radius: 30px; overflow: hidden;
+  aspect-ratio: 4/5; background: var(--pf-bg-2);
+  box-shadow: 0 40px 80px -40px rgb(20 32 58 / .45);
+}
+.pf-portrait__img img { width: 100%; height: 100%; object-fit: cover; object-position: center top; }
+.pf-portrait::before {
+  content: ""; position: absolute; inset: -6% -8% auto auto; width: 70%; aspect-ratio: 1;
+  border-radius: 50%; background: color-mix(in srgb, var(--pf-orange) 16%, transparent);
+  filter: blur(40px); z-index: -1;
+}
+.pf-float {
+  position: absolute; display: inline-flex; align-items: center; gap: .5rem;
+  background: #fff; border: 1px solid var(--pf-line); border-radius: 16px;
+  padding: .6rem .85rem; font-size: .8rem; font-weight: 600;
+  box-shadow: 0 16px 34px -18px rgb(20 32 58 / .35);
+  animation: pf-bob 5s ease-in-out infinite;
+}
+.pf-float small { display: block; font-weight: 500; color: var(--pf-ink-3); font-size: .7rem; }
+.pf-float--a { left: -12%; top: 14%; }
+.pf-float--b { right: -8%; bottom: 12%; animation-delay: -2.5s; }
+@keyframes pf-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+@media (prefers-reduced-motion: reduce) { .pf-float { animation: none; } }
+@media (max-width: 880px) { .pf-float--a { left: auto; right: -4%; top: 6%; } }
+
+/* ---------------------------------------------- Systems Limited feature */
+
+.pf-feature {
+  display: grid; gap: clamp(1.5rem, 4vw, 3.5rem);
+  grid-template-columns: minmax(0,1fr) minmax(0,1fr);
+  align-items: center;
+  background: #fff; border: 1px solid var(--pf-line);
+  border-radius: 32px; padding: clamp(1.6rem, 4vw, 3.2rem);
+  box-shadow: 0 30px 70px -44px rgb(20 32 58 / .4);
+}
+@media (max-width: 880px) { .pf-feature { grid-template-columns: 1fr; } }
+.pf-feature__tag {
+  display: inline-flex; align-items: center; gap: .5rem;
+  font-family: var(--pf-mono); font-size: .7rem; letter-spacing: .14em; text-transform: uppercase;
+  color: #16A34A; background: rgb(22 163 74 / .1); border-radius: 100px; padding: .35rem .8rem;
+}
+.pf-feature__tag i { width: 7px; height: 7px; border-radius: 50%; background: #16A34A; animation: pf-live 1.6s ease-in-out infinite; }
+@keyframes pf-live { 50% { opacity: .35; } }
+.pf-feature h3, .pf-feature h2.pf-feature__h { font-size: clamp(1.6rem, 3vw, 2.3rem); margin: 1rem 0 .4rem; }
+.pf-feature__role { color: var(--pf-blue); font-weight: 600; margin-bottom: 1.2rem; }
+.pf-feature p { color: var(--pf-ink-2); }
+
+.pf-facts { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: .8rem; }
+.pf-fact { background: var(--pf-bg); border-radius: 18px; padding: 1.1rem 1.2rem; }
+.pf-fact b { display: block; font-family: var(--pf-display); font-size: clamp(1.5rem, 2.6vw, 2.1rem); line-height: 1.05; color: var(--pf-ink); }
+.pf-fact span { font-size: .8rem; color: var(--pf-ink-3); }
+.pf-source { font-size: .74rem; color: var(--pf-ink-3); margin-top: 1rem; }
+.pf-source a { color: var(--pf-ink-3); }
+
+/* ------------------------------------------------- Axon founder feature */
+
+.pf-founder {
+  position: relative; overflow: hidden;
+  display: grid; gap: clamp(1.5rem, 4vw, 3rem);
+  grid-template-columns: minmax(0,.9fr) minmax(0,1.1fr); align-items: center;
+  background: linear-gradient(145deg, #1A1128, #0E0A16);
+  color: #fff; border-radius: 32px; padding: clamp(1.6rem, 4vw, 3.2rem);
+}
+@media (max-width: 880px) { .pf-founder { grid-template-columns: 1fr; } }
+.pf-founder::before {
+  content: ""; position: absolute; right: -10%; top: -30%; width: 60%; aspect-ratio: 1;
+  border-radius: 50%; background: radial-gradient(closest-side, rgb(255 106 43 / .35), transparent 70%);
+}
+.pf-founder > * { position: relative; }
+.pf-founder h3, .pf-founder h2.pf-founder__h { font-size: clamp(1.6rem, 3vw, 2.3rem); margin: 1rem 0 .7rem; }
+.pf-founder p { color: #C4BCD6; }
+.pf-founder .pf-eyebrow { color: #FF8A4D; background: rgb(255 138 77 / .14); }
+.pf-founder__mark { display: flex; align-items: center; gap: .8rem; font-family: var(--pf-display); font-weight: 700; font-size: 1.15rem; }
+.pf-founder__mark img { width: 48px; height: 48px; border-radius: 14px; }
+.pf-founder__shots { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: .7rem; }
+.pf-founder__shots img { border-radius: 14px; aspect-ratio: 16/10; object-fit: cover; object-position: top left;
+  border: 1px solid rgb(255 255 255 / .1); }
+.pf-founder .pf-btn { background: #FF6A2B; }
+.pf-founder .pf-btn:hover { background: #fff; color: #1A1128; }
+
+/* --------------------------------------------------------- projects */
+
+/* Small, even, every one with a picture. The oversized cards were the problem. */
+.pf-projects { display: grid; gap: 1.2rem; grid-template-columns: repeat(auto-fill, minmax(min(280px,100%), 1fr)); }
+.pf-project {
+  display: flex; flex-direction: column; text-decoration: none;
+  background: #fff; border: 1px solid var(--pf-line); border-radius: 22px; overflow: hidden;
+  transition: transform 450ms var(--pf-ease), box-shadow 450ms, border-color 450ms;
+}
+.pf-project:hover { transform: translateY(-6px); border-color: var(--pf-line-2);
+  box-shadow: 0 26px 50px -30px rgb(20 32 58 / .45); }
+.pf-project__pic { aspect-ratio: 16/10; overflow: hidden; background: var(--pf-bg-2); }
+.pf-project__pic img { width: 100%; height: 100%; object-fit: cover; object-position: top left;
+  transition: transform 800ms var(--pf-ease); }
+.pf-project:hover .pf-project__pic img { transform: scale(1.05); }
+.pf-project__b { padding: 1rem 1.15rem 1.2rem; }
+.pf-project__b h3 { font-size: 1.05rem; margin-bottom: .3rem; }
+.pf-project__b p { font-size: .86rem; color: var(--pf-ink-2); margin: 0; line-height: 1.5; }
+.pf-project__k { font-family: var(--pf-mono); font-size: .62rem; letter-spacing: .12em; text-transform: uppercase; color: var(--pf-ink-3); margin-bottom: .45rem; }
+
+/* ------------------------------------------------------ certificates */
+
+/* A side note now, not a headline: a strip of small thumbnails. */
+.pf-certstrip { display: grid; gap: .9rem; grid-template-columns: repeat(auto-fill, minmax(min(210px,100%), 1fr)); }
+.pf-certmini {
+  padding: 0; border: 1px solid var(--pf-line); border-radius: 16px; background: #fff;
+  overflow: hidden; cursor: zoom-in; text-align: left; font: inherit; color: inherit;
+  transition: transform 400ms var(--pf-ease), border-color 400ms, box-shadow 400ms;
+}
+.pf-certmini:hover { transform: translateY(-4px); border-color: var(--pf-orange);
+  box-shadow: 0 18px 36px -24px rgb(20 32 58 / .5); }
+.pf-certmini img { width: 100%; aspect-ratio: 4/3; object-fit: cover; object-position: top center; }
+.pf-certmini div { padding: .65rem .8rem .75rem; border-top: 1px solid var(--pf-line); }
+.pf-certmini b { display: block; font-size: .8rem; font-weight: 600; line-height: 1.3; }
+.pf-certmini span { font-size: .72rem; color: var(--pf-ink-3); }
+
+.pf-badges { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: 1.2rem; justify-content: center; }
+.pf-badges span {
+  font-size: .8rem; font-weight: 500; color: var(--pf-ink-2);
+  background: #fff; border: 1px solid var(--pf-line); border-radius: 100px; padding: .4rem .85rem;
+}
+
+/* ---------------------------------------------------------- timeline */
+
+.pf-tl { position: relative; padding-left: 2.2rem; }
+.pf-tl::before { content: ""; position: absolute; left: 8px; top: .4rem; bottom: .4rem; width: 2px;
+  background: linear-gradient(var(--pf-orange), var(--pf-blue), transparent); border-radius: 2px; }
+.pf-tlitem { position: relative; padding-bottom: 2.2rem; }
+.pf-tlitem:last-child { padding-bottom: 0; }
+.pf-tlitem::before { content: ""; position: absolute; left: -2.2rem; top: .35rem;
+  width: 18px; height: 18px; border-radius: 50%; background: #fff; border: 3px solid var(--pf-orange); }
+.pf-tlitem[data-kind="study"]::before { border-color: var(--pf-blue); }
+.pf-tlwhen { font-family: var(--pf-mono); font-size: .72rem; color: var(--pf-ink-3); text-transform: uppercase; letter-spacing: .06em; }
+.pf-tlitem h3 { margin: .3rem 0 .15rem; }
+.pf-tlorg { color: var(--pf-orange); font-weight: 600; font-size: .95rem; }
+.pf-tlitem[data-kind="study"] .pf-tlorg { color: var(--pf-blue); }
+.pf-tlitem ul { margin: .6rem 0 0; padding-left: 1.1rem; color: var(--pf-ink-2); font-size: .93rem; }
+
+/* ------------------------------------------------------------ skills */
+
+.pf-skills { display: grid; gap: .9rem; grid-template-columns: repeat(auto-fit, minmax(min(250px,100%), 1fr)); }
+.pf-skill { background: #fff; border: 1px solid var(--pf-line); border-radius: 18px; padding: 1.1rem 1.2rem; }
+.pf-skill h3 { font-family: var(--pf-mono); font-size: .7rem; letter-spacing: .14em; text-transform: uppercase; color: var(--pf-orange); margin-bottom: .75rem; }
+.pf-tags { display: flex; flex-wrap: wrap; gap: .35rem; }
+.pf-tags span { font-size: .78rem; color: var(--pf-ink-2); background: var(--pf-bg); border-radius: 100px; padding: .25rem .65rem; }
+
+/* ------------------------------------------------ night (contact) */
+
+.pf-night { background: linear-gradient(180deg, var(--pf-night-2), var(--pf-night)); color: #fff; }
+.pf-night .pf-lede { color: #B7C2E0; }
+.pf-night .pf-eyebrow { color: #FFB27A; background: rgb(255 178 122 / .12); }
+.pf-night .pf-btn { background: var(--pf-orange); }
+.pf-night .pf-btn:hover { background: #fff; color: var(--pf-night); }
+.pf-night .pf-btn--ghost { color: #fff; border-color: rgb(255 255 255 / .25); background: transparent; }
+.pf-night .pf-btn--ghost:hover { border-color: #fff; color: #fff; }
+.pf-stars { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.pf-stars i { position: absolute; width: 2px; height: 2px; border-radius: 50%; background: #fff;
+  animation: pf-twinkle 3s ease-in-out infinite; }
+@keyframes pf-twinkle { 50% { opacity: .15; } }
+@media (prefers-reduced-motion: reduce) { .pf-stars i { animation: none; } }
+
+.pf-foot { background: var(--pf-night); color: #7E8AAE; font-size: .88rem; padding-block: 2rem; border-top: 1px solid rgb(255 255 255 / .06); }
+.pf-foot a { color: #B7C2E0; }
+.pf-foot__in { display: flex; flex-wrap: wrap; gap: .8rem 2rem; align-items: center; }
+.pf-foot__in > :last-child { margin-left: auto; }
+
+/* =============================================================== THE ROAD */
+
+.pf-road {
+  position: fixed; left: 0; right: 0; bottom: 0; height: var(--pf-road);
+  z-index: 55; pointer-events: none; overflow: hidden;
+  /* the JS sets --t from 0 (day) to 1 (night) as you scroll */
+  background: linear-gradient(180deg,
+    color-mix(in srgb, #CFE3FF calc((1 - var(--t, 0)) * 100%), #1B2A57) 0%,
+    color-mix(in srgb, #EAF2FF calc((1 - var(--t, 0)) * 100%), #0E1838) 62%,
+    #2A2F3D 62%, #1E222D 100%);
+  border-top: 1px solid rgb(20 32 58 / .08);
+}
+.pf-road__sun {
+  position: absolute; top: 10px; width: 26px; height: 26px; border-radius: 50%;
+  left: calc(8% + var(--t, 0) * 80%);
+  background: color-mix(in srgb, #FFC54D calc((1 - var(--t, 0)) * 100%), #F2F5FF);
+  box-shadow: 0 0 22px color-mix(in srgb, #FFC54D calc((1 - var(--t, 0)) * 100%), #9FB3FF);
+}
+.pf-road__lane {
+  position: absolute; left: 0; right: 0; bottom: 16px; height: 3px;
+  background: repeating-linear-gradient(90deg, #F2E3B5 0 26px, transparent 26px 52px);
+  opacity: .8;
+  background-position-x: calc(var(--scroll, 0) * -1px);
+}
+.pf-road__stop {
+  position: absolute; bottom: 40px; transform: translateX(-50%);
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  font-family: var(--pf-mono); font-size: .6rem; letter-spacing: .08em; text-transform: uppercase;
+  color: color-mix(in srgb, #4B5773 calc((1 - var(--t, 0)) * 100%), #9FB0DC);
+  transition: color 400ms;
+}
+.pf-road__stop::after {
+  content: ""; width: 9px; height: 9px; border-radius: 50%;
+  background: #fff; border: 2px solid currentColor; transition: background 300ms, transform 300ms var(--pf-spring);
+}
+.pf-road__stop.is-passed { color: var(--pf-orange); }
+.pf-road__stop.is-passed::after { background: var(--pf-orange); border-color: var(--pf-orange); transform: scale(1.3); }
+@media (max-width: 720px) { .pf-road__stop span { display: none; } }
+
+.pf-rider {
+  position: absolute; bottom: 12px; width: 96px;
+  left: 0; transform: translateX(var(--x, 0px));
+  will-change: transform;
+}
+.pf-rider svg { width: 100%; height: auto; display: block; overflow: visible; }
+.pf-rider #r-body { animation: pf-ride 380ms ease-in-out infinite alternate; transform-origin: 105px 100px; }
+.pf-rider.is-parked #r-body { animation: none; }
+.pf-rider.is-parked #r-exhaust { opacity: 0; }
+@keyframes pf-ride { to { transform: translateY(-1.6px); } }
+.pf-rider #r-exhaust { transition: opacity 300ms; }
+.pf-rider #r-wheel-back, .pf-rider #r-wheel-front { transform-box: fill-box; transform-origin: center; }
+/* headlight turns on at night */
+.pf-rider .pf-beam {
+  position: absolute; left: 76%; bottom: 26%; width: 120px; height: 34px;
+  background: linear-gradient(90deg, rgb(255 225 150 / .55), transparent);
+  clip-path: polygon(0 40%, 100% 0, 100% 100%, 0 60%);
+  opacity: var(--t, 0); pointer-events: none;
+}
+@media (prefers-reduced-motion: reduce) { .pf-rider #r-body { animation: none; } }
+
+/* ------------------------------------------------------------- reveal */
+
+.js [data-r] { opacity: 0; transform: translateY(24px); transition: opacity 800ms var(--pf-ease), transform 800ms var(--pf-ease); }
+.js [data-r].is-in { opacity: 1; transform: none; }
+/* The hero is the first thing anyone sees: it must never wait on JS. It gets
+   a CSS-only entrance that starts on first paint instead. */
+.js .pf-hero [data-r] { opacity: 1; transform: none; transition: none; animation: pf-rise 700ms var(--pf-ease) both; }
+.js .pf-hero [data-r-delay="80"]  { animation-delay: 80ms; }
+.js .pf-hero [data-r-delay="140"] { animation-delay: 140ms; }
+.js .pf-hero [data-r-delay="160"] { animation-delay: 160ms; }
+.js .pf-hero [data-r-delay="220"] { animation-delay: 220ms; }
+.js .pf-hero [data-r-delay="280"] { animation-delay: 280ms; }
+@keyframes pf-rise { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .js [data-r], .js .pf-hero [data-r] { opacity: 1; transform: none; animation: none; } }
+
+/* ------------------------------------------------------------ lightbox */
+
+.pf-box { position: fixed; inset: 0; z-index: 99; display: grid; place-items: center;
+  background: rgb(11 23 51 / .88); backdrop-filter: blur(12px);
+  opacity: 0; pointer-events: none; transition: opacity 400ms var(--pf-ease); padding: clamp(1rem,4vw,3rem); }
+.pf-box.is-open { opacity: 1; pointer-events: auto; }
+.pf-box img { max-width: min(1200px,100%); max-height: 84vh; border-radius: 14px; box-shadow: 0 50px 120px -40px #000;
+  transform: scale(.95); transition: transform 500ms var(--pf-ease); }
+.pf-box.is-open img { transform: scale(1); }
+.pf-box__c { position: absolute; bottom: clamp(1rem,3vw,2rem); left: 0; right: 0; text-align: center; color: #D7DEF2; font-size: .9rem; }
+.pf-box__x { position: absolute; top: clamp(1rem,3vw,1.6rem); right: clamp(1rem,3vw,1.6rem);
+  width: 44px; height: 44px; border-radius: 50%; background: rgb(255 255 255 / .1);
+  border: 1px solid rgb(255 255 255 / .25); color: #fff; font-size: 1.3rem; cursor: pointer; }
+
+
+/* --- real brand marks -------------------------------------------------- */
+.pf-rolepill--logo { padding-left: 1rem; gap: .5rem; }
+.pf-rolepill .pf-sl { height: 22px; width: auto; border-radius: 0; margin-top: 3px; }
+.pf-feature__h { margin: 1rem 0 .5rem; }
+.pf-sl-lg { height: clamp(34px, 4vw, 46px); width: auto; }
+.pf-btn svg { flex: none; }
+
+
+/* =================================================== UX pass (Sep 2026)
+   Fixes found in a slice-by-slice audit: content sliding under a see-through
+   nav, too much chrome on phones, dead space between sections, and pages that
+   ran to 10,000px on mobile because every card was full width. */
+
+/* nav: a real bar once you scroll, so headings never run under the pills */
+.pf-nav { inset: 0 0 auto 0; padding-block: 1rem; transition: background 300ms, padding 300ms, border-color 300ms; border-bottom: 1px solid transparent; }
+.pf-nav.is-scrolled {
+  background: color-mix(in srgb, var(--pf-bg) 84%, transparent);
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  border-bottom-color: var(--pf-line); padding-block: .5rem;
+  pointer-events: auto;
+}
+.pf-brand img { border-radius: 8px; }
+
+/* rhythm: tighter sections */
+.pf-section { padding-block: clamp(3.5rem, 7vw, 6rem); }
+
+/* road: slimmer so it frames the page instead of eating it */
+.pf-road__sun { top: 7px; width: 22px; height: 22px; }
+.pf-road__stop { bottom: 28px; }
+.pf-road__lane { bottom: 12px; }
+.pf-rider { bottom: 8px; width: 78px; }
+
+/* project cards are buttons for the personal project: reset button chrome */
+button.pf-project { font: inherit; color: inherit; text-align: left; padding: 0; cursor: zoom-in; width: 100%; }
+
+/* inline marks are bare now; no tile, no rounding */
+.pf-rolepill img[src*="axon-mark"], .pf-founder__mark img { border-radius: 0; background: none; }
+
+@media (max-width: 720px) {
+  :root { --pf-road: 54px; }
+  .pf-links { display: none; }                 /* one clean row on phones */
+  .pf-nav__in { flex-wrap: nowrap; }
+  .pf-hero { padding-block: 5.5rem 2rem; min-height: 0; }
+  .pf-portrait { max-width: 230px; justify-self: start; }
+  .pf-road__sun { top: 5px; width: 16px; height: 16px; }
+  .pf-road__stop { bottom: 20px; }
+  .pf-road__stop::after { width: 7px; height: 7px; }
+  .pf-road__lane { bottom: 8px; height: 2px; }
+  .pf-rider { width: 58px; bottom: 5px; }
+  .pf-rider .pf-beam { width: 70px; height: 22px; }
+
+  /* two-up grids instead of one enormous card per screen */
+  .pf-projects, .pf-certstrip { grid-template-columns: 1fr 1fr; gap: .7rem; }
+  .pf-project { border-radius: 16px; }
+  .pf-project__b { padding: .7rem .8rem .85rem; }
+  .pf-project__b h3 { font-size: .9rem; margin: 0; }
+  .pf-project__b p, .pf-project__k { display: none; }
+  .pf-certmini div { padding: .5rem .6rem .6rem; }
+  .pf-certmini b { font-size: .72rem; }
+}
+
+/* =================================================== interaction pass
+   Every button and link was clicked through in a test run; these are the
+   fixes: invisible hover states on dark sections, headings landing under the
+   fixed nav, no keyboard focus ring, a footer that was one stray link, and a
+   road whose labels collided and did nothing when clicked. */
+
+/* anchors land below the fixed nav */
+section[id] { scroll-margin-top: 76px; }
+
+/* keyboard users can see where they are */
+[data-brand="portfolio"] :is(a, button):focus-visible {
+  outline: 2px solid var(--pf-orange); outline-offset: 3px; border-radius: 100px;
+}
+
+/* ghost buttons on dark backgrounds: white fill + white text made them vanish */
+.pf-night .pf-btn--ghost, .pf-founder .pf-btn--ghost { color: #fff; border-color: rgb(255 255 255 / .28); }
+.pf-night .pf-btn--ghost:hover, .pf-founder .pf-btn--ghost:hover {
+  background: rgb(255 255 255 / .1); color: #fff; border-color: #fff;
+}
+.pf-night .pf-btn:not(.pf-btn--ghost) { background: var(--pf-orange); color: #fff; }
+.pf-night .pf-btn:not(.pf-btn--ghost):hover { background: #fff; color: var(--pf-night); }
+.pf-btn:active { transform: translateY(0) scale(.98); }
+
+/* ------------------------------------------------------------- footer */
+.pf-foot { background: var(--pf-night); color: #B7C2E0; padding-block: 2.6rem 2rem; border-top: 1px solid rgb(255 255 255 / .07); }
+.pf-foot a { color: inherit; text-decoration: none; }
+.pf-foot__top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1.6rem 2rem; }
+.pf-foot__me { display: inline-flex; align-items: center; gap: .75rem; }
+.pf-foot__me img { width: 40px; height: 40px; border-radius: 11px; }
+.pf-foot__me b, .pf-foot__axon b { display: block; color: #fff; font-family: var(--pf-display); font-weight: 700; font-size: 1rem; line-height: 1.2; }
+.pf-foot__me small, .pf-foot__axon small { display: block; font-size: .75rem; color: #8C9BC4; }
+.pf-foot__links { display: flex; flex-wrap: wrap; gap: .3rem; }
+.pf-foot__links a { font-size: .85rem; padding: .4rem .8rem; border-radius: 100px; transition: background 250ms, color 250ms; }
+.pf-foot__links a:hover { background: rgb(255 255 255 / .08); color: #fff; }
+.pf-foot__axon {
+  display: inline-flex; align-items: center; gap: .7rem;
+  padding: .55rem .95rem .55rem .6rem; border-radius: 16px;
+  border: 1px solid rgb(255 255 255 / .12); background: rgb(255 255 255 / .04);
+  transition: border-color 300ms, background 300ms, transform 300ms var(--pf-spring);
+}
+.pf-foot__axon img { width: 34px; height: 34px; }
+.pf-foot__axon i { font-style: normal; color: var(--pf-orange-2); transition: transform 300ms var(--pf-spring); }
+.pf-foot__axon:hover { border-color: var(--pf-orange); background: rgb(242 103 14 / .08); transform: translateY(-2px); }
+.pf-foot__axon:hover i { transform: translateX(4px); }
+.pf-foot__bottom {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem;
+  margin-top: 2rem; padding-top: 1.4rem; border-top: 1px solid rgb(255 255 255 / .08); font-size: .8rem; color: #8C9BC4;
+}
+.pf-foot__social { display: inline-flex; gap: .4rem; }
+.pf-foot__social a { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; border: 1px solid rgb(255 255 255 / .14); transition: all 250ms; }
+.pf-foot__social a:hover { color: #fff; border-color: #fff; background: rgb(255 255 255 / .08); }
+.pf-foot__top-btn {
+  font: inherit; font-size: .8rem; color: #fff; cursor: pointer;
+  background: none; border: 1px solid rgb(255 255 255 / .18); border-radius: 100px; padding: .45rem .95rem;
+  transition: border-color 250ms, background 250ms;
+}
+.pf-foot__top-btn:hover { border-color: var(--pf-orange); background: rgb(242 103 14 / .12); }
+.pf-foot__top-btn span { display: inline-block; transition: transform 300ms var(--pf-spring); }
+.pf-foot__top-btn:hover span { transform: translateY(-3px); }
+@media (max-width: 720px) {
+  .pf-foot__links { display: none; }
+  .pf-foot__top { flex-direction: column; align-items: flex-start; }
+}
+
+/* --------------------------------------------------------------- road v2 */
+/* sun and moon keep to their own corner instead of drifting over the labels */
+.pf-road__sun { left: auto !important; right: 22px; top: 9px; width: 18px; height: 18px; }
+/* a thin progress line: how far through the page you are */
+.pf-road__progress {
+  position: absolute; left: 0; bottom: 30%; height: 2px; width: 0;
+  background: linear-gradient(90deg, transparent, var(--pf-orange));
+  opacity: .55; transition: width 120ms linear;
+}
+/* stops: dots by default, the label only for where you are (and on hover) */
+.pf-road__stop { pointer-events: auto; cursor: pointer; padding: 6px 8px 0; }
+.pf-road__stop span {
+  position: absolute; bottom: calc(100% - 2px); left: 50%; transform: translate(-50%, 4px);
+  white-space: nowrap; padding: 2px 7px; border-radius: 100px;
+  background: #fff; color: var(--pf-ink); box-shadow: 0 4px 12px -6px rgb(20 32 58 / .4);
+  opacity: 0; transition: opacity 250ms, transform 300ms var(--pf-spring);
+  font-size: .58rem; letter-spacing: .08em;
+}
+.pf-road__stop:hover span, .pf-road__stop.is-current span { opacity: 1; transform: translate(-50%, 0); }
+.pf-road__stop.is-current span { background: var(--pf-orange); color: #fff; }
+.pf-road__stop:hover::after { transform: scale(1.5); }
+.pf-rider { pointer-events: auto; cursor: pointer; }
+@media (max-width: 720px) {
+  .pf-road__stop span { display: block; }      /* phones: only the current label shows */
+  .pf-road__stop:not(.is-current) span { opacity: 0; }
+  .pf-road__sun { right: 14px; top: 6px; width: 13px; height: 13px; }
+}
+
+/* visible to screen readers and search engines, not on screen */
+.pf-sr { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+/* --------------------------------------------------------------- road v3
+   Names never hide: passed stops keep their name (orange), the current one is
+   a solid pill, upcoming ones stay visible but quiet. Labels sit above the
+   rider in the stacking order, so he rides behind them, never over them. */
+.pf-road__stop { z-index: 3; }
+.pf-rider { z-index: 2; }
+.pf-road__stop span,
+.pf-road__stop:not(.is-current) span {
+  opacity: 1; transform: translate(-50%, 0);
+  background: rgb(255 255 255 / .82); color: #5B6785; box-shadow: none;
+  border: 1px solid rgb(20 32 58 / .08);
+  transition: background 300ms, color 300ms, box-shadow 300ms, transform 300ms var(--pf-spring);
+}
+.pf-road__stop.is-passed span { background: #FFF1E6; color: #C4500A; border-color: rgb(242 103 14 / .3); }
+.pf-road__stop.is-current span {
+  background: var(--pf-orange); color: #fff; border-color: var(--pf-orange);
+  box-shadow: 0 6px 14px -6px rgb(242 103 14 / .7); transform: translate(-50%, -2px) scale(1.06);
+}
+.pf-road__stop:hover span { transform: translate(-50%, -2px); }
+@media (max-width: 720px) {
+  .pf-road__stop span, .pf-road__stop:not(.is-current) span { opacity: 1; font-size: .5rem; padding: 1px 5px; letter-spacing: .04em; }
+}
+@media (max-width: 720px) { .pf-road__sun { display: none; } }   /* no room above the labels on phones */
+
+/* a finished internship: a quiet tick, not the pulsing "live" dot */
+.pf-feature__tag--done { background: #EAF0FF; color: #2F5BEA; }
+.pf-feature__tag--done i { animation: none; background: none; width: auto; height: auto; }
+.pf-feature__tag--done i::before { content: "\2713"; font-style: normal; font-weight: 700; }
+
+/* source links: each on its own tappable line on phones */
+.pf-source a { display: inline-block; padding-block: .3rem; }
+@media (max-width: 720px) { .pf-source a { display: block; padding-block: .45rem; } }
+
+/* source links read as a list: separator on wide screens, own lines on phones */
+.pf-source a + a::before { content: "\00B7"; display: inline-block; margin: 0 .45rem; color: var(--pf-ink-3); text-decoration: none; }
+@media (max-width: 720px) { .pf-source a + a::before { content: none; } }
+.pf-feature__when { font-family: var(--pf-mono); font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: var(--pf-ink-3); margin: .35rem 0 1rem; }
+
+/* the footer runs under the fixed road, so no strip of page shows below it */
+.pf-foot { margin-bottom: calc(-1 * var(--pf-road)); padding-bottom: calc(2rem + var(--pf-road)); }

@@ -1,0 +1,121 @@
+/* ============================================================================
+   AXON — Brand tokens (v2)
+
+   What changed and why:
+   - The accent is no longer rationed. The previous rule ("ember is an accent,
+     never more than ~10% of a viewport") made the pages feel timid and unfinished
+     next to the sites this is measured against, which fill buttons, pills and
+     whole sections with their accent. Colour is now used generously.
+   - The two identities no longer share a hue. Axon Systems is orange on deep
+     ink; Hashir Junaid is violet on warm cream. Previously both were ember and
+     the personal site read as a second Axon page.
+   - Type is friendlier and more geometric: Space Grotesk for Axon, Plus Jakarta
+     Sans for the personal site. Archivo and Fraunces were too severe.
+   ========================================================================= */
+
+:root {
+  /* --- ember (Axon) --------------------------------------------------- */
+  --ember-900: #4A1103;
+  --ember-800: #7A1F06;
+  --ember-700: #A62C09;
+  --ember-600: #D0400F;
+  --ember-500: #E85219;
+  --ember-400: #FF6A2B;
+  --ember-300: #FF8A4D;
+  --ember-200: #FFAE7C;
+  --ember-100: #FFD1AF;
+  --ember-050: #FFEEE2;
+
+  /* --- violet (personal, and Axon's secondary) ------------------------ */
+  --violet-700: #3A1FA8;
+  --violet-600: #4A2BD1;
+  --violet-500: #5B3DF5;
+  --violet-400: #7C5CFF;
+  --violet-300: #A48CFF;
+  --violet-200: #CFC2FF;
+  --violet-050: #F1EDFF;
+
+  /* --- per-product accents, so a grid of cards is not monochrome ------ */
+  --c-ledger:      #FF6A2B;
+  --c-attendance:  #3E9BFF;
+  --c-linkedin:    #16B8A6;
+  --c-cv:          #7C5CFF;
+  --c-relay:       #FF4D6D;
+  --c-mdm:         #2BB673;
+  --c-construction:#FFA41B;
+  --c-chatbot:     #C46BFF;
+
+  --signal: linear-gradient(90deg, var(--ember-500), var(--ember-400) 45%, #FFB454 100%);
+
+  --font-body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-fast: 160ms;  --dur: 320ms;  --dur-slow: 640ms;
+
+  /* Rounder than before. Both reference sites are soft everywhere. */
+  --r-sm: 10px; --r-md: 16px; --r-lg: 22px; --r-xl: 32px; --r-pill: 999px;
+}
+
+/* ============================================================================
+   AXON SYSTEMS — orange on deep ink
+   ========================================================================= */
+[data-brand="axon"] {
+  --bg:          #12101A;
+  --bg-alt:      #17141F;   /* alternating section band */
+  --bg-deep:     #0C0A12;   /* the darkest band, for contrast sections */
+  --surface:     #1E1A2B;
+  --surface-2:   #272236;
+  --border:      #2E2840;
+  --border-lit:  #463D63;
+
+  --text:        #F6F3FA;
+  --text-2:      #B4ABC6;
+  --text-3:      #9C93B3;   /* 5.3:1 on the raised surface; #837A99 failed WCAG AA */
+
+  --accent:      var(--ember-400);
+  --accent-ink:  #1A0D05;          /* text on a filled accent button */
+  --accent-soft: var(--ember-300);
+  --accent-2:    var(--violet-400);
+  --field-hot:   var(--ember-100);
+  --field-dim:   var(--ember-700);
+
+  --font-display: "Space Grotesk", var(--font-body);
+  --display-weight: 700;
+  --display-tracking: -0.03em;
+
+  color-scheme: dark;
+}
+
+/* ============================================================================
+   HASHIR JUNAID — violet on warm cream.
+   Shares no hue with Axon, so the two sites cannot be mistaken for each other.
+   ========================================================================= */
+[data-brand="hashir"] {
+  --bg:          #FFFBF5;
+  --bg-alt:      #F7F2FF;
+  --bg-deep:     #1A1626;
+  --surface:     #FFFFFF;
+  --surface-2:   #F4EFFF;
+  --border:      #EAE2F2;
+  --border-lit:  #CFC2FF;
+
+  --text:        #1A1626;
+  --text-2:      #574F6B;
+  --text-3:      #8B8399;
+
+  --accent:      var(--violet-500);
+  --accent-ink:  #FFFFFF;
+  --accent-soft: var(--violet-600);
+  --accent-2:    var(--ember-400);
+  --field-broken:var(--ember-500);
+  --field-hot:   var(--violet-300);
+  --field-dim:   var(--violet-200);
+
+  --font-display: "Plus Jakarta Sans", var(--font-body);
+  --display-weight: 800;
+  --display-tracking: -0.035em;
+
+  color-scheme: light;
+}
