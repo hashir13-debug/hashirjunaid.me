@@ -14,6 +14,15 @@
  * Plain canvas, no library. Reduced motion gets the settled end state.
  */
 (() => {
+// The canvas is decoration: it waits until the page has painted, so it never
+// competes with the first screen on a slow phone.
+const idleStart = (run) => {
+  const go = () => ('requestIdleCallback' in window ? requestIdleCallback(run, { timeout: 1200 }) : setTimeout(run, 220));
+  if (document.readyState === 'complete') go();
+  else addEventListener('load', go, { once: true });
+};
+
+idleStart(() => {
   const canvas = document.querySelector('[data-story-field]');
   if (!canvas) return;
 
@@ -155,4 +164,5 @@
       else { cancelAnimationFrame(raf); raf = 0; }
     }, { threshold: 0 }).observe(canvas);
   }
+});
 })();

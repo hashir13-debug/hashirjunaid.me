@@ -1,18 +1,4 @@
-/* ============================================================================
-   Shared site styles (v2)
 
-   Rewritten after putting the first build side by side with the two sites it
-   is measured against. What they had and the first attempt did not:
-
-     - a floating pill navigation and a filled call-to-action always in view
-     - the accent colour used generously, not rationed to ~10% of a viewport
-     - each section on its own background band, so the page changes as you scroll
-     - a distinct colour per project card instead of one monochrome grid
-     - large radii and soft shadows everywhere
-
-   Driven entirely by tokens.css: switching <html data-brand> switches the whole
-   identity, and the two identities now share no hue.
-   ========================================================================= */
 
 *, *::before, *::after { box-sizing: border-box; }
 
@@ -52,15 +38,12 @@ p:last-child { margin-bottom: 0; }
 ::selection { background: var(--accent); color: var(--accent-ink); }
 :focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; border-radius: 6px; }
 
-/* --- layout --------------------------------------------------------------- */
-
 .wrap { width: min(1280px, 100% - 3rem); margin-inline: auto; }
 .wrap--narrow { width: min(820px, 100% - 3rem); margin-inline: auto; }
 @media (max-width: 640px) { .wrap, .wrap--narrow { width: calc(100% - 1.75rem); } }
 
 section { padding-block: clamp(4.5rem, 9vw, 8.5rem); }
 
-/* Alternating bands, so the page changes underfoot as you scroll. */
 .band       { background: var(--bg-alt); }
 .band--deep { background: var(--bg-deep); color: #fff; }
 [data-brand="hashir"] .band--deep { --text-2: #C9C2D8; --text-3: #9A92AC; --border: #2E2840; --surface: #241F33; }
@@ -83,8 +66,6 @@ section { padding-block: clamp(4.5rem, 9vw, 8.5rem); }
 
 .lede { font-size: clamp(1.08rem, 1.5vw, 1.35rem); color: var(--text-2); max-width: 60ch; }
 
-/* --- buttons -------------------------------------------------------------- */
-
 .btn {
   display: inline-flex; align-items: center; gap: .6rem;
   font-family: var(--font-display); font-weight: 700; font-size: .98rem;
@@ -102,8 +83,6 @@ section { padding-block: clamp(4.5rem, 9vw, 8.5rem); }
 .btn--ghost:hover { border-color: var(--accent); color: var(--accent); }
 .btn-row { display: flex; flex-wrap: wrap; gap: .85rem; margin-top: 2.2rem; }
 .center .btn-row { justify-content: center; }
-
-/* --- floating pill nav ---------------------------------------------------- */
 
 .site-head { position: fixed; inset: 1rem 0 auto 0; z-index: 50; pointer-events: none; }
 .site-head__in { display: flex; align-items: center; gap: 1rem; pointer-events: auto; }
@@ -148,8 +127,6 @@ section { padding-block: clamp(4.5rem, 9vw, 8.5rem); }
   .site-head .btn { margin-left: auto; }
 }
 
-/* --- hero ----------------------------------------------------------------- */
-
 .hero { position: relative; overflow: clip; padding-block: clamp(8.5rem, 16vw, 12rem) clamp(4rem, 7vw, 6rem); }
 .hero__field { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; opacity: .9; }
 .hero > .wrap { position: relative; z-index: 1; }
@@ -166,8 +143,6 @@ section { padding-block: clamp(4.5rem, 9vw, 8.5rem); }
 .hero__fact b { display: block; font-family: var(--font-display); font-size: 2.1rem; line-height: 1; color: var(--accent); }
 .hero__fact span { font-size: .78rem; color: var(--text-3); }
 
-/* --- product grid --------------------------------------------------------- */
-
 .grid { display: grid; gap: clamp(1.25rem, 2vw, 1.9rem); grid-template-columns: repeat(auto-fill, minmax(min(410px, 100%), 1fr)); }
 .grid--3 { grid-template-columns: repeat(auto-fill, minmax(min(330px, 100%), 1fr)); }
 
@@ -181,7 +156,7 @@ section { padding-block: clamp(4.5rem, 9vw, 8.5rem); }
   transition: transform var(--dur) var(--ease-out), box-shadow var(--dur) var(--ease-out),
               border-color var(--dur) var(--ease-out);
 }
-/* Each card carries its own colour, so a grid of them is not one grey slab. */
+
 .card__top {
   padding: 1.6rem 1.6rem 0;
   background: linear-gradient(170deg, color-mix(in srgb, var(--c) 30%, transparent), transparent 72%);
@@ -221,8 +196,6 @@ section { padding-block: clamp(4.5rem, 9vw, 8.5rem); }
 .stack { display: flex; flex-wrap: wrap; gap: .4rem; }
 .stack span { font-size: .74rem; color: var(--text-3); background: var(--surface-2); border-radius: var(--r-pill); padding: .28rem .7rem; }
 
-/* --- product detail ------------------------------------------------------- */
-
 .detail-head { padding-block: clamp(7.5rem, 13vw, 10rem) 2rem; position: relative; overflow: clip; }
 .detail-head::before {
   content: ""; position: absolute; inset: -50% 35% 30% -15%; pointer-events: none;
@@ -256,8 +229,6 @@ section { padding-block: clamp(4.5rem, 9vw, 8.5rem); }
   padding: 1.1rem 1.3rem; color: var(--text-2); margin-block: 1.8rem;
 }
 
-/* --- services ------------------------------------------------------------- */
-
 .service {
   background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg);
   padding: 1.6rem 1.7rem;
@@ -269,15 +240,11 @@ section { padding-block: clamp(4.5rem, 9vw, 8.5rem); }
 .service .proof { font-size: .8rem; color: var(--text-3); }
 .service .proof b { color: var(--accent); font-weight: 600; }
 
-/* --- footer --------------------------------------------------------------- */
-
 .site-foot { border-top: 1px solid var(--border); padding-block: 3rem; color: var(--text-3); font-size: .92rem; }
 .site-foot a { color: var(--text-2); }
 .site-foot__in { display: flex; flex-wrap: wrap; gap: .8rem 2.5rem; align-items: center; }
 .site-foot__in > :last-child { margin-left: auto; }
 @media (max-width: 640px) { .site-foot__in > :last-child { margin-left: 0; } }
-
-/* --- motion --------------------------------------------------------------- */
 
 .js [data-reveal] { opacity: 0; transform: translateY(26px); transition: opacity .8s var(--ease-out), transform .8s var(--ease-out); }
 .js [data-reveal].is-in { opacity: 1; transform: none; }
@@ -289,16 +256,6 @@ section { padding-block: clamp(4.5rem, 9vw, 8.5rem); }
 
 .prose { max-width: 62ch; }
 .prose h2 { margin-top: 2.6rem; margin-bottom: 1rem; }
-
-
-/* ============================================================================
-   Personal portfolio components
-   ------------------------------------------------------------------------
-   A personal site needs things a company site does not: a face, a skills
-   inventory, a timeline of study and work, and the certificates that go with
-   being a student. The first build had none of them and read as a second
-   company page.
-   ========================================================================= */
 
 .hero--profile { text-align: left; }
 .hero--profile .wrap {
@@ -336,8 +293,6 @@ section { padding-block: clamp(4.5rem, 9vw, 8.5rem); }
 }
 .role-line .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--accent); }
 
-/* --- skills --------------------------------------------------------------- */
-
 .skillset { display: grid; gap: 1.1rem; grid-template-columns: repeat(auto-fit, minmax(min(280px,100%), 1fr)); }
 .skillset > div {
   background: var(--surface); border: 1px solid var(--border);
@@ -347,8 +302,6 @@ section { padding-block: clamp(4.5rem, 9vw, 8.5rem); }
   font-size: .78rem; letter-spacing: .14em; text-transform: uppercase;
   font-family: var(--font-data); color: var(--accent); margin-bottom: .9rem;
 }
-
-/* --- timeline ------------------------------------------------------------- */
 
 .timeline { position: relative; padding-left: 2.2rem; }
 .timeline::before {
@@ -372,8 +325,6 @@ section { padding-block: clamp(4.5rem, 9vw, 8.5rem); }
 .tl-item ul { margin: .7rem 0 0; padding-left: 1.1rem; color: var(--text-2); font-size: .96rem; }
 .tl-item li { margin-bottom: .3rem; }
 
-/* --- certifications ------------------------------------------------------- */
-
 .certs { display: grid; gap: .8rem; grid-template-columns: repeat(auto-fit, minmax(min(300px,100%), 1fr)); }
 .cert {
   display: flex; gap: .9rem; align-items: flex-start;
@@ -384,17 +335,10 @@ section { padding-block: clamp(4.5rem, 9vw, 8.5rem); }
 .cert b { display: block; font-size: .98rem; font-weight: 600; }
 .cert span { font-size: .86rem; color: var(--text-3); }
 
-/* --- small side projects -------------------------------------------------- */
-
 .mini { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 1.5rem 1.6rem; }
 .mini h3 { font-size: 1.15rem; margin-bottom: .5rem; }
 .mini p { color: var(--text-2); font-size: .95rem; margin-bottom: .9rem; }
 
-
-/* --- curved section divider ------------------------------------------------
-   The reference site peels a big rounded white panel away to reveal the next
-   section. Same idea, done with a radius on the band itself: cheaper, works
-   without JS, and does not pin the page. */
 .band--curve {
   border-radius: clamp(28px, 5vw, 64px) clamp(28px, 5vw, 64px) 0 0;
   margin-top: clamp(-4rem, -5vw, -2rem);
@@ -402,9 +346,6 @@ section { padding-block: clamp(4.5rem, 9vw, 8.5rem); }
   z-index: 2;
 }
 
-/* --- personal project card -------------------------------------------------
-   On the personal site a card is a project he designed, not a product in a
-   catalogue, so it leads with his role rather than a product category. */
 .card__role {
   font-family: var(--font-data);
   font-size: .68rem; letter-spacing: .12em; text-transform: uppercase;
@@ -421,20 +362,8 @@ section { padding-block: clamp(4.5rem, 9vw, 8.5rem); }
 .callout h3 { font-size: 1.2rem; margin-bottom: .25rem; }
 .callout p { color: var(--text-2); font-size: .95rem; margin: 0; }
 
-
-/* A centred column is fine; centred body text is not - it makes every line
-   start in a different place. Centre the block, left-align the words. */
 .prose.center { text-align: left; }
 .prose.center > * { max-width: 62ch; margin-inline: auto; }
-
-
-/* ============================================================================
-   Aurora hero + credential marquee (personal site)
-   ------------------------------------------------------------------------
-   The spreadsheet-cell animation was replaced: it read as a table sitting
-   behind the text rather than as a background. This is quieter underneath and
-   louder where it counts - the names on the certificates.
-   ========================================================================= */
 
 .aurora { position: absolute; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
 .aurora span {
@@ -455,8 +384,6 @@ section { padding-block: clamp(4.5rem, 9vw, 8.5rem); }
   to   { transform: translate3d(3vw, 3vw, 0) scale(1.12); }
 }
 @media (prefers-reduced-motion: reduce) { .aurora span { animation: none; } }
-
-/* --- credential marquee --------------------------------------------------- */
 
 .marquee {
   position: relative;
@@ -489,15 +416,6 @@ section { padding-block: clamp(4.5rem, 9vw, 8.5rem); }
   font-family: var(--font-data); font-size: .7rem; letter-spacing: .16em;
   text-transform: uppercase; color: var(--text-3); text-align: center; margin-bottom: .9rem;
 }
-
-
-/* ============================================================================
-   Certificate showcase
-   ------------------------------------------------------------------------
-   A list of certificate names is a CV, not a portfolio. Where a scan exists it
-   is shown at size, with the issuing body's own design intact - that is the
-   proof, and it is what people actually look at.
-   ========================================================================= */
 
 .certgrid { display: grid; gap: clamp(1.1rem, 2vw, 1.8rem); grid-template-columns: repeat(auto-fill, minmax(min(380px,100%), 1fr)); }
 
@@ -533,7 +451,6 @@ section { padding-block: clamp(4.5rem, 9vw, 8.5rem); }
 .certcard__meta b { display: block; font-family: var(--font-display); font-size: 1.02rem; line-height: 1.25; }
 .certcard__meta span { display: block; font-size: .85rem; color: var(--text-3); margin-top: .25rem; }
 
-/* certificates with no scan yet - a quieter row, still listed */
 .certlist { display: grid; gap: .7rem; grid-template-columns: repeat(auto-fit, minmax(min(300px,100%), 1fr)); margin-top: 1.6rem; }
 .certlist div {
   display: flex; gap: .8rem; align-items: baseline;
@@ -542,8 +459,6 @@ section { padding-block: clamp(4.5rem, 9vw, 8.5rem); }
 }
 .certlist b { font-weight: 600; }
 .certlist span { color: var(--text-3); font-size: .82rem; margin-left: auto; white-space: nowrap; }
-
-/* --- lightbox ------------------------------------------------------------- */
 
 .lightbox {
   position: fixed; inset: 0; z-index: 80;
@@ -572,8 +487,6 @@ section { padding-block: clamp(4.5rem, 9vw, 8.5rem); }
   color: #fff; font-size: 1.3rem; cursor: pointer; line-height: 1;
 }
 
-/* The hero is the largest paint on the page: it must not wait for JS and an
-   IntersectionObserver. It gets a CSS-only entrance from the first frame. */
 .js .hero [data-reveal] { opacity: 1; transform: none; transition: none; animation: hero-rise .7s var(--ease-out) both; }
 .js .hero [data-reveal-delay="70"]  { animation-delay: 70ms; }
 .js .hero [data-reveal-delay="140"] { animation-delay: 140ms; }
@@ -582,17 +495,14 @@ section { padding-block: clamp(4.5rem, 9vw, 8.5rem); }
 @keyframes hero-rise { from { opacity: .01; transform: translateY(18px); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .js .hero [data-reveal] { animation: none; } }
 
-/* comfortable tap targets (24px+) for small text links */
 .back { padding-block: .45rem; }
 .site-foot a { display: inline-block; padding-block: .4rem; }
 
-/* services: seven cards, so the last row is centred rather than one orphan */
 .grid--center { display: flex; flex-wrap: wrap; justify-content: center; }
 .grid--center > * { flex: 0 1 calc((100% - 2 * clamp(1.25rem, 2vw, 1.9rem)) / 3); min-width: min(300px, 100%); }
 @media (max-width: 1060px) { .grid--center > * { flex-basis: calc((100% - clamp(1.25rem, 2vw, 1.9rem)) / 2); } }
 @media (max-width: 700px) { .grid--center > * { flex-basis: 100%; } }
 
-/* hero facts: one row of three on phones instead of a tall stack */
 @media (max-width: 560px) {
   .hero__facts { display: grid; grid-template-columns: repeat(3, 1fr); gap: .55rem; }
   .hero__fact { min-width: 0; padding: .8rem .5rem; text-align: center; }
@@ -600,6 +510,56 @@ section { padding-block: clamp(4.5rem, 9vw, 8.5rem); }
   .hero__fact span { font-size: .66rem; line-height: 1.25; display: block; margin-top: .3rem; }
 }
 
-/* browsers give <figure> 40px side margins by default; screenshots fill their column */
 .shot { margin-inline: 0; }
 .shot--phone { margin-inline: auto; }
+
+.benefit {
+  font-size: clamp(1.05rem, 1.8vw, 1.3rem); line-height: 1.55; color: var(--text-1);
+  border-left: 3px solid var(--c, var(--accent)); padding: .2rem 0 .2rem 1.1rem; margin: 2.2rem 0 0;
+}
+
+.hero--split { text-align: left; padding-block: clamp(6.5rem, 12vw, 9rem) clamp(3.5rem, 6vw, 5rem); }
+.hero--split .hero__field { opacity: .45; }          
+.hero__grid { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr); gap: clamp(2rem, 5vw, 4.5rem); align-items: center; }
+.hero--split h1 { font-size: clamp(2.4rem, 5vw, 4.2rem); line-height: 1.04; }
+.hero--split .lede { margin-top: 1.3rem; max-width: 52ch; }
+.hero--split .hero__facts { justify-content: flex-start; }
+.hero__proof { position: relative; min-height: 340px; }
+.hero__proof-desk {
+  width: 100%; border-radius: 16px; border: 1px solid var(--border);
+  box-shadow: 0 50px 90px -50px rgb(0 0 0 / .9);
+}
+.hero__proof-phone {
+  position: absolute; right: -2%; bottom: -16%; width: 31%; border-radius: 16px;
+  border: 1px solid var(--border); box-shadow: 0 40px 70px -40px rgb(0 0 0 / .95);
+}
+@media (max-width: 900px) {
+  .hero__grid { grid-template-columns: 1fr; }
+  .hero__proof { display: none; }                     
+}
+
+.founder { display: grid; grid-template-columns: minmax(0, .42fr) minmax(0, 1fr); gap: clamp(2rem, 5vw, 4rem); align-items: center; }
+.founder__photo img { width: 100%; border-radius: 20px; border: 1px solid var(--border); display: block; }
+.founder__note h2 { font-size: clamp(1.7rem, 3.2vw, 2.6rem); margin: .6rem 0 1.1rem; }
+.founder__note p { max-width: 64ch; margin-bottom: 1rem; }
+.founder__sign { font-family: var(--font-data); font-size: .85rem; color: var(--text-3); letter-spacing: .02em; }
+.founder__sign a { color: var(--accent); margin-left: .6rem; text-decoration: none; }
+.founder__sign a:hover { text-decoration: underline; }
+@media (max-width: 820px) {
+  .founder { grid-template-columns: 1fr; }
+  .founder__photo { max-width: 240px; }
+}
+
+.hero__proof { padding-right: 9%; }
+.hero__proof-phone { right: 0; width: 29%; }
+
+@media (max-width: 720px) {
+  .site-head__in { flex-wrap: wrap; gap: .5rem; }
+  .site-nav { order: 3; width: 100%; overflow-x: auto; scrollbar-width: none; justify-content: flex-start; }
+  .site-nav::-webkit-scrollbar { display: none; }
+  .site-nav a { white-space: nowrap; }
+}
+
+.brandmark img { width: auto; height: 26px; border-radius: 0; }
+
+.hero--split h1, .hero--split .lede { animation: none !important; opacity: 1 !important; transform: none !important; }

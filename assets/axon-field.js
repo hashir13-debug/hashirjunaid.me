@@ -12,6 +12,15 @@
  * so it costs nothing while someone is reading further down the page.
  */
 (() => {
+// The canvas is decoration: it waits until the page has painted, so it never
+// competes with the first screen on a slow phone.
+const idleStart = (run) => {
+  const go = () => ('requestIdleCallback' in window ? requestIdleCallback(run, { timeout: 1200 }) : setTimeout(run, 220));
+  if (document.readyState === 'complete') go();
+  else addEventListener('load', go, { once: true });
+};
+
+idleStart(() => {
   const canvas = document.querySelector('[data-axon-field]');
   if (!canvas) return;
 
@@ -213,4 +222,5 @@
   build();
   draw(performance.now());
   start();
+});
 })();

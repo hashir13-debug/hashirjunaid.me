@@ -1,17 +1,4 @@
-/* ============================================================================
-   Hashir Junaid — portfolio (v3, light)
 
-   Asked for: a light theme in the spirit of the reference site, different
-   fonts, far less weight on the cards, certificates as a side note rather than
-   a headline, a smaller CTA, Systems Limited and Axon Systems given real
-   prominence, and something creative of his own.
-
-   The creative piece is a delivery rider on a road fixed to the bottom of the
-   screen. As you scroll he rides from left to right, the sky behind the road
-   goes from day to night, and each section's stop lights up as he passes it.
-   Riders are what half of Hashir's software is about, and the day-to-night
-   ride is his own line: the real work happens at night.
-   ========================================================================= */
 
 :root {
   --pf-bg:      #F6F7FB;
@@ -24,10 +11,10 @@
   --pf-ink-2:   #4B5773;
   --pf-ink-3:   #8791A8;
 
-  --pf-orange:  #F2670E;   /* the rider's box */
+  --pf-orange:  #F2670E;   
   --pf-orange-2:#FF9A3D;
   --pf-blue:    #2F5BEA;
-  --pf-night:   #0B1733;   /* where the ride ends */
+  --pf-night:   #0B1733;   
   --pf-night-2: #132453;
 
   --pf-display: "Sora", "Inter", system-ui, sans-serif;
@@ -52,7 +39,7 @@
   font-size: 17px;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
-  padding-bottom: var(--pf-road);   /* the road never covers the last content */
+  padding-bottom: var(--pf-road);   
 }
 :where([data-brand="portfolio"]) img { max-width: 100%; height: auto; display: block; }
 :where([data-brand="portfolio"]) a { color: inherit; }
@@ -74,8 +61,6 @@
 [data-brand="portfolio"] ::selection { background: var(--pf-orange); color: #fff; }
 [data-brand="portfolio"] :focus-visible { outline: 3px solid var(--pf-orange); outline-offset: 3px; border-radius: 6px; }
 
-/* ------------------------------------------------------------ layout */
-
 .pf-wrap { width: min(1240px, 100% - 3rem); margin-inline: auto; position: relative; }
 .pf-narrow { width: min(820px, 100% - 3rem); margin-inline: auto; position: relative; }
 @media (max-width: 640px) { .pf-wrap, .pf-narrow { width: calc(100% - 1.75rem); } }
@@ -96,8 +81,6 @@
 .pf-lede { font-size: clamp(1.05rem, 1.45vw, 1.25rem); color: var(--pf-ink-2); max-width: 58ch; }
 .pf-hi { color: var(--pf-orange); }
 .pf-hi-blue { color: var(--pf-blue); }
-
-/* ------------------------------------------------------------- nav */
 
 .pf-nav { position: fixed; inset: 1rem 0 auto 0; z-index: 60; pointer-events: none; }
 .pf-nav__in { display: flex; align-items: center; gap: 1rem; pointer-events: auto; }
@@ -126,7 +109,6 @@
 .pf-links a:hover { color: var(--pf-ink); background: var(--pf-bg-2); }
 .pf-links a.is-active { background: var(--pf-orange); color: #fff; }
 
-/* The CTA was far too loud. It is now a quiet pill that earns attention on hover. */
 .pf-cta {
   display: inline-flex; align-items: center; gap: .45rem;
   font-family: var(--pf-display); font-weight: 600; font-size: .84rem;
@@ -145,8 +127,6 @@
   .pf-cta { margin-left: auto; }
 }
 
-/* ------------------------------------------------------------ buttons */
-
 .pf-btn {
   display: inline-flex; align-items: center; gap: .55rem;
   font-family: var(--pf-display); font-weight: 600; font-size: .95rem;
@@ -160,8 +140,6 @@
 .pf-btn--ghost:hover { background: #fff; color: var(--pf-orange); border-color: var(--pf-orange); box-shadow: none; }
 .pf-btns { display: flex; flex-wrap: wrap; gap: .7rem; margin-top: 2.2rem; }
 .pf-center .pf-btns { justify-content: center; }
-
-/* ------------------------------------------------------------ hero */
 
 .pf-hero { min-height: calc(100svh - var(--pf-road)); display: grid; align-items: center; padding-block: 8rem 4rem; }
 .pf-hero__grid { display: grid; gap: clamp(2rem, 5vw, 5rem); grid-template-columns: minmax(0,1.3fr) minmax(0,.7fr); align-items: center; }
@@ -179,9 +157,10 @@
   background: #fff; border: 1px solid var(--pf-line); border-radius: 100px;
   padding: .45rem .9rem .45rem .45rem;
 }
-.pf-rolepill img, .pf-rolepill b {
+
+.pf-rolepill img:not(.pf-sl) {
   width: 24px; height: 24px; border-radius: 7px; flex: none;
-  display: grid; place-items: center; font-size: .66rem; font-weight: 800; color: #fff;
+  display: grid; place-items: center;
 }
 
 .pf-portrait { position: relative; justify-self: end; width: 100%; max-width: 400px; }
@@ -210,8 +189,6 @@
 @media (prefers-reduced-motion: reduce) { .pf-float { animation: none; } }
 @media (max-width: 880px) { .pf-float--a { left: auto; right: -4%; top: 6%; } }
 
-/* ---------------------------------------------- Systems Limited feature */
-
 .pf-feature {
   display: grid; gap: clamp(1.5rem, 4vw, 3.5rem);
   grid-template-columns: minmax(0,1fr) minmax(0,1fr);
@@ -239,8 +216,6 @@
 .pf-source { font-size: .74rem; color: var(--pf-ink-3); margin-top: 1rem; }
 .pf-source a { color: var(--pf-ink-3); }
 
-/* ------------------------------------------------- Axon founder feature */
-
 .pf-founder {
   position: relative; overflow: hidden;
   display: grid; gap: clamp(1.5rem, 4vw, 3rem);
@@ -265,9 +240,6 @@
 .pf-founder .pf-btn { background: #FF6A2B; }
 .pf-founder .pf-btn:hover { background: #fff; color: #1A1128; }
 
-/* --------------------------------------------------------- projects */
-
-/* Small, even, every one with a picture. The oversized cards were the problem. */
 .pf-projects { display: grid; gap: 1.2rem; grid-template-columns: repeat(auto-fill, minmax(min(280px,100%), 1fr)); }
 .pf-project {
   display: flex; flex-direction: column; text-decoration: none;
@@ -285,9 +257,6 @@
 .pf-project__b p { font-size: .86rem; color: var(--pf-ink-2); margin: 0; line-height: 1.5; }
 .pf-project__k { font-family: var(--pf-mono); font-size: .62rem; letter-spacing: .12em; text-transform: uppercase; color: var(--pf-ink-3); margin-bottom: .45rem; }
 
-/* ------------------------------------------------------ certificates */
-
-/* A side note now, not a headline: a strip of small thumbnails. */
 .pf-certstrip { display: grid; gap: .9rem; grid-template-columns: repeat(auto-fill, minmax(min(210px,100%), 1fr)); }
 .pf-certmini {
   padding: 0; border: 1px solid var(--pf-line); border-radius: 16px; background: #fff;
@@ -307,8 +276,6 @@
   background: #fff; border: 1px solid var(--pf-line); border-radius: 100px; padding: .4rem .85rem;
 }
 
-/* ---------------------------------------------------------- timeline */
-
 .pf-tl { position: relative; padding-left: 2.2rem; }
 .pf-tl::before { content: ""; position: absolute; left: 8px; top: .4rem; bottom: .4rem; width: 2px;
   background: linear-gradient(var(--pf-orange), var(--pf-blue), transparent); border-radius: 2px; }
@@ -323,15 +290,11 @@
 .pf-tlitem[data-kind="study"] .pf-tlorg { color: var(--pf-blue); }
 .pf-tlitem ul { margin: .6rem 0 0; padding-left: 1.1rem; color: var(--pf-ink-2); font-size: .93rem; }
 
-/* ------------------------------------------------------------ skills */
-
 .pf-skills { display: grid; gap: .9rem; grid-template-columns: repeat(auto-fit, minmax(min(250px,100%), 1fr)); }
 .pf-skill { background: #fff; border: 1px solid var(--pf-line); border-radius: 18px; padding: 1.1rem 1.2rem; }
 .pf-skill h3 { font-family: var(--pf-mono); font-size: .7rem; letter-spacing: .14em; text-transform: uppercase; color: var(--pf-orange); margin-bottom: .75rem; }
 .pf-tags { display: flex; flex-wrap: wrap; gap: .35rem; }
 .pf-tags span { font-size: .78rem; color: var(--pf-ink-2); background: var(--pf-bg); border-radius: 100px; padding: .25rem .65rem; }
-
-/* ------------------------------------------------ night (contact) */
 
 .pf-night { background: linear-gradient(180deg, var(--pf-night-2), var(--pf-night)); color: #fff; }
 .pf-night .pf-lede { color: #B7C2E0; }
@@ -351,12 +314,10 @@
 .pf-foot__in { display: flex; flex-wrap: wrap; gap: .8rem 2rem; align-items: center; }
 .pf-foot__in > :last-child { margin-left: auto; }
 
-/* =============================================================== THE ROAD */
-
 .pf-road {
   position: fixed; left: 0; right: 0; bottom: 0; height: var(--pf-road);
   z-index: 55; pointer-events: none; overflow: hidden;
-  /* the JS sets --t from 0 (day) to 1 (night) as you scroll */
+  
   background: linear-gradient(180deg,
     color-mix(in srgb, #CFE3FF calc((1 - var(--t, 0)) * 100%), #1B2A57) 0%,
     color-mix(in srgb, #EAF2FF calc((1 - var(--t, 0)) * 100%), #0E1838) 62%,
@@ -402,7 +363,7 @@
 @keyframes pf-ride { to { transform: translateY(-1.6px); } }
 .pf-rider #r-exhaust { transition: opacity 300ms; }
 .pf-rider #r-wheel-back, .pf-rider #r-wheel-front { transform-box: fill-box; transform-origin: center; }
-/* headlight turns on at night */
+
 .pf-rider .pf-beam {
   position: absolute; left: 76%; bottom: 26%; width: 120px; height: 34px;
   background: linear-gradient(90deg, rgb(255 225 150 / .55), transparent);
@@ -411,12 +372,9 @@
 }
 @media (prefers-reduced-motion: reduce) { .pf-rider #r-body { animation: none; } }
 
-/* ------------------------------------------------------------- reveal */
-
 .js [data-r] { opacity: 0; transform: translateY(24px); transition: opacity 800ms var(--pf-ease), transform 800ms var(--pf-ease); }
 .js [data-r].is-in { opacity: 1; transform: none; }
-/* The hero is the first thing anyone sees: it must never wait on JS. It gets
-   a CSS-only entrance that starts on first paint instead. */
+
 .js .pf-hero [data-r] { opacity: 1; transform: none; transition: none; animation: pf-rise 700ms var(--pf-ease) both; }
 .js .pf-hero [data-r-delay="80"]  { animation-delay: 80ms; }
 .js .pf-hero [data-r-delay="140"] { animation-delay: 140ms; }
@@ -425,8 +383,6 @@
 .js .pf-hero [data-r-delay="280"] { animation-delay: 280ms; }
 @keyframes pf-rise { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .js [data-r], .js .pf-hero [data-r] { opacity: 1; transform: none; animation: none; } }
-
-/* ------------------------------------------------------------ lightbox */
 
 .pf-box { position: fixed; inset: 0; z-index: 99; display: grid; place-items: center;
   background: rgb(11 23 51 / .88); backdrop-filter: blur(12px);
@@ -440,21 +396,12 @@
   width: 44px; height: 44px; border-radius: 50%; background: rgb(255 255 255 / .1);
   border: 1px solid rgb(255 255 255 / .25); color: #fff; font-size: 1.3rem; cursor: pointer; }
 
-
-/* --- real brand marks -------------------------------------------------- */
 .pf-rolepill--logo { padding-left: 1rem; gap: .5rem; }
 .pf-rolepill .pf-sl { height: 22px; width: auto; border-radius: 0; margin-top: 3px; }
 .pf-feature__h { margin: 1rem 0 .5rem; }
 .pf-sl-lg { height: clamp(34px, 4vw, 46px); width: auto; }
 .pf-btn svg { flex: none; }
 
-
-/* =================================================== UX pass (Sep 2026)
-   Fixes found in a slice-by-slice audit: content sliding under a see-through
-   nav, too much chrome on phones, dead space between sections, and pages that
-   ran to 10,000px on mobile because every card was full width. */
-
-/* nav: a real bar once you scroll, so headings never run under the pills */
 .pf-nav { inset: 0 0 auto 0; padding-block: 1rem; transition: background 300ms, padding 300ms, border-color 300ms; border-bottom: 1px solid transparent; }
 .pf-nav.is-scrolled {
   background: color-mix(in srgb, var(--pf-bg) 84%, transparent);
@@ -464,24 +411,20 @@
 }
 .pf-brand img { border-radius: 8px; }
 
-/* rhythm: tighter sections */
 .pf-section { padding-block: clamp(3.5rem, 7vw, 6rem); }
 
-/* road: slimmer so it frames the page instead of eating it */
 .pf-road__sun { top: 7px; width: 22px; height: 22px; }
 .pf-road__stop { bottom: 28px; }
 .pf-road__lane { bottom: 12px; }
 .pf-rider { bottom: 8px; width: 78px; }
 
-/* project cards are buttons for the personal project: reset button chrome */
 button.pf-project { font: inherit; color: inherit; text-align: left; padding: 0; cursor: zoom-in; width: 100%; }
 
-/* inline marks are bare now; no tile, no rounding */
 .pf-rolepill img[src*="axon-mark"], .pf-founder__mark img { border-radius: 0; background: none; }
 
 @media (max-width: 720px) {
   :root { --pf-road: 54px; }
-  .pf-links { display: none; }                 /* one clean row on phones */
+  .pf-links { display: none; }                 
   .pf-nav__in { flex-wrap: nowrap; }
   .pf-hero { padding-block: 5.5rem 2rem; min-height: 0; }
   .pf-portrait { max-width: 230px; justify-self: start; }
@@ -492,8 +435,7 @@ button.pf-project { font: inherit; color: inherit; text-align: left; padding: 0;
   .pf-rider { width: 58px; bottom: 5px; }
   .pf-rider .pf-beam { width: 70px; height: 22px; }
 
-  /* two-up grids instead of one enormous card per screen */
-  .pf-projects, .pf-certstrip { grid-template-columns: 1fr 1fr; gap: .7rem; }
+.pf-projects, .pf-certstrip { grid-template-columns: 1fr 1fr; gap: .7rem; }
   .pf-project { border-radius: 16px; }
   .pf-project__b { padding: .7rem .8rem .85rem; }
   .pf-project__b h3 { font-size: .9rem; margin: 0; }
@@ -502,21 +444,12 @@ button.pf-project { font: inherit; color: inherit; text-align: left; padding: 0;
   .pf-certmini b { font-size: .72rem; }
 }
 
-/* =================================================== interaction pass
-   Every button and link was clicked through in a test run; these are the
-   fixes: invisible hover states on dark sections, headings landing under the
-   fixed nav, no keyboard focus ring, a footer that was one stray link, and a
-   road whose labels collided and did nothing when clicked. */
-
-/* anchors land below the fixed nav */
 section[id] { scroll-margin-top: 76px; }
 
-/* keyboard users can see where they are */
 [data-brand="portfolio"] :is(a, button):focus-visible {
   outline: 2px solid var(--pf-orange); outline-offset: 3px; border-radius: 100px;
 }
 
-/* ghost buttons on dark backgrounds: white fill + white text made them vanish */
 .pf-night .pf-btn--ghost, .pf-founder .pf-btn--ghost { color: #fff; border-color: rgb(255 255 255 / .28); }
 .pf-night .pf-btn--ghost:hover, .pf-founder .pf-btn--ghost:hover {
   background: rgb(255 255 255 / .1); color: #fff; border-color: #fff;
@@ -525,7 +458,6 @@ section[id] { scroll-margin-top: 76px; }
 .pf-night .pf-btn:not(.pf-btn--ghost):hover { background: #fff; color: var(--pf-night); }
 .pf-btn:active { transform: translateY(0) scale(.98); }
 
-/* ------------------------------------------------------------- footer */
 .pf-foot { background: var(--pf-night); color: #B7C2E0; padding-block: 2.6rem 2rem; border-top: 1px solid rgb(255 255 255 / .07); }
 .pf-foot a { color: inherit; text-decoration: none; }
 .pf-foot__top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1.6rem 2rem; }
@@ -566,16 +498,14 @@ section[id] { scroll-margin-top: 76px; }
   .pf-foot__top { flex-direction: column; align-items: flex-start; }
 }
 
-/* --------------------------------------------------------------- road v2 */
-/* sun and moon keep to their own corner instead of drifting over the labels */
 .pf-road__sun { left: auto !important; right: 22px; top: 9px; width: 18px; height: 18px; }
-/* a thin progress line: how far through the page you are */
+
 .pf-road__progress {
   position: absolute; left: 0; bottom: 30%; height: 2px; width: 0;
   background: linear-gradient(90deg, transparent, var(--pf-orange));
   opacity: .55; transition: width 120ms linear;
 }
-/* stops: dots by default, the label only for where you are (and on hover) */
+
 .pf-road__stop { pointer-events: auto; cursor: pointer; padding: 6px 8px 0; }
 .pf-road__stop span {
   position: absolute; bottom: calc(100% - 2px); left: 50%; transform: translate(-50%, 4px);
@@ -589,18 +519,13 @@ section[id] { scroll-margin-top: 76px; }
 .pf-road__stop:hover::after { transform: scale(1.5); }
 .pf-rider { pointer-events: auto; cursor: pointer; }
 @media (max-width: 720px) {
-  .pf-road__stop span { display: block; }      /* phones: only the current label shows */
+  .pf-road__stop span { display: block; }      
   .pf-road__stop:not(.is-current) span { opacity: 0; }
   .pf-road__sun { right: 14px; top: 6px; width: 13px; height: 13px; }
 }
 
-/* visible to screen readers and search engines, not on screen */
 .pf-sr { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 
-/* --------------------------------------------------------------- road v3
-   Names never hide: passed stops keep their name (orange), the current one is
-   a solid pill, upcoming ones stay visible but quiet. Labels sit above the
-   rider in the stacking order, so he rides behind them, never over them. */
 .pf-road__stop { z-index: 3; }
 .pf-rider { z-index: 2; }
 .pf-road__stop span,
@@ -619,21 +544,102 @@ section[id] { scroll-margin-top: 76px; }
 @media (max-width: 720px) {
   .pf-road__stop span, .pf-road__stop:not(.is-current) span { opacity: 1; font-size: .5rem; padding: 1px 5px; letter-spacing: .04em; }
 }
-@media (max-width: 720px) { .pf-road__sun { display: none; } }   /* no room above the labels on phones */
+@media (max-width: 720px) { .pf-road__sun { display: none; } }   
 
-/* a finished internship: a quiet tick, not the pulsing "live" dot */
 .pf-feature__tag--done { background: #EAF0FF; color: #2F5BEA; }
 .pf-feature__tag--done i { animation: none; background: none; width: auto; height: auto; }
 .pf-feature__tag--done i::before { content: "\2713"; font-style: normal; font-weight: 700; }
 
-/* source links: each on its own tappable line on phones */
 .pf-source a { display: inline-block; padding-block: .3rem; }
 @media (max-width: 720px) { .pf-source a { display: block; padding-block: .45rem; } }
 
-/* source links read as a list: separator on wide screens, own lines on phones */
 .pf-source a + a::before { content: "\00B7"; display: inline-block; margin: 0 .45rem; color: var(--pf-ink-3); text-decoration: none; }
 @media (max-width: 720px) { .pf-source a + a::before { content: none; } }
 .pf-feature__when { font-family: var(--pf-mono); font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: var(--pf-ink-3); margin: .35rem 0 1rem; }
 
-/* the footer runs under the fixed road, so no strip of page shows below it */
 .pf-foot { margin-bottom: calc(-1 * var(--pf-road)); padding-bottom: calc(2rem + var(--pf-road)); }
+
+.pf-grouphead { margin-bottom: 1.1rem; }
+.pf-grouphead h3 { font-size: clamp(1.1rem, 2vw, 1.35rem); margin: 0 0 .25rem; }
+.pf-grouphead p { margin: 0; font-size: .92rem; color: var(--pf-ink-2); max-width: 62ch; }
+
+.pf-cv { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,.62fr); gap: clamp(2rem,5vw,4.5rem); align-items: center; }
+.pf-cv h2 { font-size: clamp(1.9rem, 3.6vw, 3rem); }
+.pf-cv__paper {
+  display: block; border-radius: 14px; overflow: hidden; background: #fff;
+  border: 1px solid var(--pf-line); box-shadow: 0 30px 60px -34px rgb(20 32 58 / .5);
+  transition: transform 450ms var(--pf-ease), box-shadow 450ms;
+}
+.pf-cv__paper:hover { transform: translateY(-5px) rotate(-.4deg); box-shadow: 0 40px 70px -30px rgb(20 32 58 / .55); }
+.pf-cv__paper img { width: 100%; height: auto; display: block; }
+@media (max-width: 880px) {
+  .pf-cv { grid-template-columns: 1fr; }
+  .pf-cv__paper { max-width: 360px; }
+}
+
+@media (min-width: 721px) {
+  .pf-project__b p { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+}
+
+.pf-letters { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(280px,100%), 1fr)); gap: 1rem; margin-bottom: .4rem; }
+.pf-letter {
+  display: flex; align-items: center; gap: 1rem; text-align: left; font: inherit; color: inherit;
+  background: #fff; border: 1px solid var(--pf-line); border-radius: 18px; padding: 1rem 1.2rem; width: 100%;
+  transition: transform 350ms var(--pf-ease), border-color 350ms, box-shadow 350ms;
+}
+button.pf-letter { cursor: zoom-in; }
+button.pf-letter:hover { transform: translateY(-3px); border-color: var(--pf-orange); box-shadow: 0 18px 36px -24px rgb(20 32 58 / .5); }
+.pf-letter img { width: 86px; height: 112px; object-fit: cover; object-position: top center; border-radius: 10px; border: 1px solid var(--pf-line); flex: none; }
+.pf-letter b { display: block; font-family: var(--pf-display); font-size: 1rem; }
+.pf-letter span { font-size: .85rem; color: var(--pf-ink-2); }
+.pf-letter--soon { border-style: dashed; background: color-mix(in srgb, #fff 55%, transparent); }
+.pf-letter--soon b, .pf-letter--soon span { color: var(--pf-ink-3); }
+.pf-letter__ph {
+  width: 86px; height: 112px; flex: none; border-radius: 10px; border: 1px dashed var(--pf-line-2);
+  display: grid; place-items: center; color: var(--pf-line-2); font-size: 1.4rem;
+  background: repeating-linear-gradient(-45deg, var(--pf-bg-2) 0 8px, transparent 8px 16px);
+}
+
+.pf-tlitem { padding-bottom: 1.5rem; }
+.pf-skills { gap: .7rem; }
+.pf-certstrip { grid-template-columns: repeat(auto-fit, minmax(min(190px,100%), 1fr)); gap: .75rem; }
+.pf-certmini img { aspect-ratio: 3/2; }
+@media (max-width: 560px) {
+  .pf-facts { grid-template-columns: 1fr 1fr; }
+  .pf-letter img, .pf-letter__ph { width: 64px; height: 84px; }
+}
+
+@media (max-width: 720px) {
+  .pf-certstrip {
+    display: flex; gap: .7rem; overflow-x: auto; scroll-snap-type: x mandatory;
+    padding-bottom: .6rem; margin-inline: calc(-1 * var(--pf-gutter, 0px));
+    scrollbar-width: none;
+  }
+  .pf-certstrip::-webkit-scrollbar { display: none; }
+  .pf-certmini { flex: 0 0 68%; scroll-snap-align: center; }
+  .pf-certmini img { aspect-ratio: 4/3; }
+  .pf-skills { grid-template-columns: 1fr 1fr; gap: .55rem; }
+  .pf-skills h3 { font-size: .82rem; }
+  .pf-skills span { font-size: .74rem; }
+  .pf-badges { gap: .4rem; }
+  .pf-badges span { font-size: .72rem; padding: .35rem .7rem; }
+}
+
+.pf-hello { display: inline-flex; align-items: center; gap: .55rem; font-size: .9rem; letter-spacing: .01em;
+  background: #fff; border: 1px solid var(--pf-line); border-radius: 100px; padding: .4rem .95rem; color: var(--pf-ink-2); }
+.pf-hello i { width: 7px; height: 7px; border-radius: 50%; background: #22C55E; box-shadow: 0 0 0 3px rgb(34 197 94 / .18); }
+
+.pf-herostats { list-style: none; display: flex; flex-wrap: wrap; gap: 1.6rem; margin: 1.6rem 0 0; padding: 0; }
+.pf-herostats li { font-size: .9rem; color: var(--pf-ink-2); }
+.pf-herostats b { display: block; font-family: var(--pf-display); font-size: 1.7rem; color: var(--pf-ink); line-height: 1.1; }
+.pf-rolepill b, .pf-rolepill strong { font-weight: 700; white-space: nowrap; flex: none; }
+
+.pf-learned { list-style: none; margin: 0; padding: 0; display: grid; gap: .8rem; }
+.pf-learned li { background: #fff; border: 1px solid var(--pf-line); border-radius: 16px; padding: .9rem 1.1rem; font-size: .92rem; color: var(--pf-ink-2); line-height: 1.5; }
+.pf-learned b { display: block; font-family: var(--pf-display); font-size: .97rem; color: var(--pf-ink); margin-bottom: .2rem; }
+
+.pf-rolepill img[src*="axon-mark"], .pf-founder__mark img, .pf-foot__axon img {
+  width: auto; height: 26px; border-radius: 0; background: none;
+}
+.pf-founder__mark img { height: 40px; }
+.pf-foot__axon img { height: 30px; }
