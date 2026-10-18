@@ -111,7 +111,6 @@
     box.className = 'pf-log';
     box.innerHTML = `<div class="pf-log__card" role="dialog" aria-label="Visit log">
       <div class="pf-log__head"><b>Who opened this</b>
-        <span class="pf-log__tabs"><button data-t="visit" class="is-on">Visits</button><button data-t="signin">Signed in</button></span>
         <button class="pf-log__x" aria-label="Close">&times;</button></div>
       <div class="pf-log__body">Loading&hellip;</div></div>`;
     document.body.appendChild(box);
@@ -131,25 +130,18 @@
       return;
     }
 
-    const render = (kind) => {
-      const rows = (data.rows || []).filter((r) => (r.type || 'visit') === kind);
-      if (!rows.length) { body.innerHTML = '<p class="pf-log__empty">Nothing recorded yet.</p>'; return; }
-      const head = kind === 'visit'
-        ? '<tr><th>When</th><th>From</th><th>Where</th><th>Network</th><th>Device</th><th>Page</th></tr>'
-        : '<tr><th>When</th><th>Name</th><th>E-mail</th><th>Page</th></tr>';
-      const where = (r) => [r.city, r.country].filter(Boolean).join(', ')
-        || (r.zone || '').split('/').pop().replace(/_/g, ' ');
-      const line = (r) => kind === 'visit'
-        ? `<tr><td>${fmt(r.at)}</td><td>${r.source || ''}</td><td>${where(r)}</td><td>${r.isp || ''}</td><td>${r.device || ''}</td><td>${r.page || ''}</td></tr>`
-        : `<tr><td>${fmt(r.at)}</td><td>${r.name || ''}</td><td>${r.email || ''}</td><td>${r.page || ''}</td></tr>`;
-      body.innerHTML = `<div class="pf-log__count">${rows.length} recorded</div>
-        <table class="pf-log__table">${head}${rows.map(line).join('')}</table>`;
-    };
-    render('visit');
-    box.querySelectorAll('.pf-log__tabs button').forEach((b) => b.onclick = () => {
-      box.querySelectorAll('.pf-log__tabs button').forEach((x) => x.classList.toggle('is-on', x === b));
-      render(b.dataset.t);
-    });
+    const rows = (data.rows || []).filter((r) => (r.type || 'visit') === 'visit');
+    if (!rows.length) { body.innerHTML = '<p class="pf-log__empty">Nothing recorded yet.</p>'; return; }
+    const where = (r) => [r.city, r.country].filter(Boolean).join(', ')
+      || (r.zone || '').split('/').pop().replace(/_/g, ' ');
+    const line = (r) => `<tr><td>${fmt(r.at)}</td><td>${r.source || ''}</td><td>${where(r)}</td>`
+      + `<td>${r.isp || ''}</td><td>${r.device || ''}</td><td>${r.page || ''}</td></tr>`;
+    const today = new Date().toDateString();
+    const todays = rows.filter((r) => new Date(r.at).toDateString() === today).length;
+    body.innerHTML = `<div class="pf-log__count">${rows.length} visits &middot; ${todays} today</div>
+      <table class="pf-log__table">
+        <tr><th>When</th><th>From</th><th>Where</th><th>Network</th><th>Device</th><th>Page</th></tr>
+        ${rows.map(line).join('')}</table>`;
   };
 
   const pad = () => {
