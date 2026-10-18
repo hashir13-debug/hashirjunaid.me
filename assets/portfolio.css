@@ -662,3 +662,46 @@ button.pf-letter:hover { transform: translateY(-3px); border-color: var(--pf-ora
   -webkit-tap-highlight-color: transparent; touch-action: manipulation;
 }
 [data-brand="portfolio"] :is(a, button):focus:not(:focus-visible) { outline: none; }
+
+.pf-dot {
+  appearance: none; background: none; border: 0; padding: 0 0 0 .35rem; margin: 0;
+  font: inherit; color: inherit; opacity: .45; cursor: default; line-height: 1;
+}
+.pf-log {
+  position: fixed; inset: 0; z-index: 200; display: grid; place-items: center;
+  background: rgb(14 20 34 / .55); backdrop-filter: blur(3px); padding: 1rem;
+}
+.pf-log__card {
+  background: #fff; color: var(--pf-ink); border-radius: 14px; width: min(860px, 100%);
+  max-height: 82vh; display: flex; flex-direction: column; overflow: hidden;
+  box-shadow: 0 30px 70px -30px rgb(14 20 34 / .6);
+}
+.pf-log__head {
+  display: flex; align-items: center; gap: .75rem; padding: .85rem 1rem;
+  border-bottom: 1px solid rgb(20 32 58 / .1); font-size: .95rem;
+}
+.pf-log__tabs { margin-left: auto; display: flex; gap: .25rem; }
+.pf-log__tabs button {
+  appearance: none; border: 1px solid rgb(20 32 58 / .12); background: #fff; cursor: pointer;
+  font: inherit; font-size: .8rem; padding: .3rem .7rem; border-radius: 100px; color: var(--pf-ink-2);
+}
+.pf-log__tabs button.is-on { background: var(--pf-orange); border-color: var(--pf-orange); color: #fff; }
+.pf-log__x { appearance: none; border: 0; background: none; font-size: 1.4rem; line-height: 1; cursor: pointer; color: var(--pf-ink-3); }
+.pf-log__body { overflow: auto; padding: .5rem 1rem 1rem; }
+.pf-log__count { font-family: var(--pf-mono); font-size: .7rem; letter-spacing: .08em; text-transform: uppercase; color: var(--pf-ink-3); padding: .6rem 0; }
+.pf-log__table { width: 100%; border-collapse: collapse; font-size: .82rem; }
+.pf-log__table th {
+  text-align: left; font-family: var(--pf-mono); font-size: .65rem; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--pf-ink-3); padding: .4rem .5rem; border-bottom: 1px solid rgb(20 32 58 / .1);
+}
+.pf-log__table td { padding: .45rem .5rem; border-bottom: 1px solid rgb(20 32 58 / .06); white-space: nowrap; }
+.pf-log__table td:last-child { white-space: normal; color: var(--pf-ink-2); }
+.pf-log__empty { color: var(--pf-ink-3); padding: 1.5rem 0; text-align: center; }
+.pf-log__pin { display: flex; flex-direction: column; align-items: center; gap: .5rem; }
+.pf-log__pin input {
+  width: 128px; text-align: center; font-family: var(--pf-mono); font-size: 1.5rem;
+  letter-spacing: .5em; text-indent: .5em; padding: .6rem .4rem; border-radius: 10px;
+  border: 1px solid rgb(255 255 255 / .25); background: rgb(255 255 255 / .1); color: #fff;
+}
+.pf-log__err { font-family: var(--pf-mono); font-size: .7rem; letter-spacing: .1em; text-transform: uppercase; color: #FFB4A2; }
+@media (max-width: 720px) { .pf-log__table { font-size: .74rem; } .pf-log__table td { padding: .4rem .35rem; } }
