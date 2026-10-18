@@ -41,7 +41,8 @@
         s.style.left = `${pos[i]}%`;
         // seven full names do not fit across a phone, so they shorten there
         const label = s.firstElementChild;
-        const want = narrow ? s.dataset.abbr : s.dataset.full;
+        // data-long, not data-full: [data-full] is the lightbox's own hook
+        const want = narrow ? s.dataset.abbr : s.dataset.long;
         if (label && want && label.textContent !== want) label.textContent = want;
         const target = document.querySelector(s.dataset.for);
         return target ? Math.min(1, Math.max(0, (target.offsetTop - innerHeight * 0.35) / max)) : 1;
@@ -166,7 +167,10 @@
   }
 
   /* ============================================================ lightbox */
-  const openers = document.querySelectorAll('[data-full]');
+  // Only real images open the lightbox. A stray data-full on something else
+  // used to open an empty black screen, which looked like a broken site.
+  const openers = [...document.querySelectorAll('[data-full]')]
+    .filter((el) => /\.(webp|png|jpe?g|avif|svg)(\?|$)/i.test(el.dataset.full || ''));
   if (openers.length) {
     const box = document.createElement('div');
     box.className = 'pf-box';
