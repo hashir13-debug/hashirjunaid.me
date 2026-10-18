@@ -20,14 +20,22 @@
     return [...new Uint8Array(b)].map((x) => x.toString(16).padStart(2, '0')).join('');
   };
 
+  // Apps Script answers a POST with a redirect to another host, which a normal
+  // cross-origin fetch will not follow. sendBeacon does not care: it posts and
+  // forgets, survives the tab closing, and needs no reply. fetch in no-cors
+  // mode is the fallback for anything that lacks it.
   const post = (body) => {
-    if (!API) return Promise.resolve(null);
-    // keepalive so the beacon still goes out if the tab is closing
-    return fetch(API, {
-      method: 'POST', keepalive: true, mode: 'cors',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },   // avoids a CORS preflight
-      body: JSON.stringify(body),
-    }).then((r) => r.json()).catch(() => null);
+    if (!API) return;
+    const text = JSON.stringify(body);
+    try {
+      const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+      if (navigator.sendBeacon && navigator.sendBeacon(API, blob)) return;
+    } catch { /* fall through */ }
+    fetch(API, {
+      method: 'POST', mode: 'no-cors', keepalive: true,
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: text,
+    }).catch(() => {});
   };
 
   /* ----------------------------------------------------------- 1. beacon */
