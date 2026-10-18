@@ -82,10 +82,16 @@
       page: location.pathname.replace(/index\.html$/, '') || '/',
       source: src,
       device: device(),
+      // ?r=... is a label Hashir puts on a link before he sends it, so a visit
+      // can be traced back to the person or company he sent it to. It is the
+      // only honest way to put a name against a visit.
+      tag: new URLSearchParams(location.search).get('r') || '',
       city: g.city || '',
       region: g.region || '',
       country: g.country || '',
       isp: (g.connection && g.connection.isp) || '',
+      // on an office network this is the employer, not the internet provider
+      org: (g.connection && (g.connection.org || g.connection.domain)) || '',
       zone: Intl.DateTimeFormat().resolvedOptions().timeZone || '',
       lang: navigator.language || '',
       screen: `${screen.width}x${screen.height}`,
@@ -134,13 +140,19 @@
     if (!rows.length) { body.innerHTML = '<p class="pf-log__empty">Nothing recorded yet.</p>'; return; }
     const where = (r) => [r.city, r.country].filter(Boolean).join(', ')
       || (r.zone || '').split('/').pop().replace(/_/g, ' ');
-    const line = (r) => `<tr><td>${fmt(r.at)}</td><td>${r.source || ''}</td><td>${where(r)}</td>`
-      + `<td>${r.isp || ''}</td><td>${r.device || ''}</td><td>${r.page || ''}</td></tr>`;
+    // Who: the label on the link if there was one, otherwise the employer the
+    // IP belongs to, otherwise nothing worth pretending about.
+    const who = (r) => r.tag
+      ? `<b class="pf-log__tag">${r.tag}</b>`
+      : (r.org && !/telecom|broadband|internet|mobile|cellular|isp|cable/i.test(r.org) ? r.org : '');
+    const line = (r) => `<tr><td>${fmt(r.at)}</td><td>${who(r)}</td><td>${r.source || ''}</td>`
+      + `<td>${where(r)}</td><td>${r.isp || ''}</td><td>${r.device || ''}</td><td>${r.page || ''}</td></tr>`;
     const today = new Date().toDateString();
     const todays = rows.filter((r) => new Date(r.at).toDateString() === today).length;
-    body.innerHTML = `<div class="pf-log__count">${rows.length} visits &middot; ${todays} today</div>
+    const named = rows.filter((r) => r.tag).length;
+    body.innerHTML = `<div class="pf-log__count">${rows.length} visits &middot; ${todays} today${named ? ` &middot; ${named} tagged` : ''}</div>
       <table class="pf-log__table">
-        <tr><th>When</th><th>From</th><th>Where</th><th>Network</th><th>Device</th><th>Page</th></tr>
+        <tr><th>When</th><th>Who</th><th>From</th><th>Where</th><th>Network</th><th>Device</th><th>Page</th></tr>
         ${rows.map(line).join('')}</table>`;
   };
 

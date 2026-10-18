@@ -697,6 +697,7 @@ button.pf-letter:hover { transform: translateY(-3px); border-color: var(--pf-ora
 .pf-log__table td { padding: .45rem .5rem; border-bottom: 1px solid rgb(20 32 58 / .06); white-space: nowrap; }
 .pf-log__table td:last-child { white-space: normal; color: var(--pf-ink-2); }
 .pf-log__empty { color: var(--pf-ink-3); padding: 1.5rem 0; text-align: center; }
+.pf-log__tag { background: #FFF1E6; color: #C4500A; border-radius: 100px; padding: .1rem .5rem; font-size: .76rem; }
 .pf-log__pin { display: flex; flex-direction: column; align-items: center; gap: .5rem; }
 .pf-log__pin input {
   width: 128px; text-align: center; font-family: var(--pf-mono); font-size: 1.5rem;
