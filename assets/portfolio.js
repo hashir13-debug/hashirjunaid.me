@@ -36,8 +36,13 @@
       // narrow screens keep the end labels clear of the edges
       const edge = road.clientWidth < 720 ? 11 : 7;
       pos = stops.map((_, i) => edge + (i * (100 - 2 * edge)) / Math.max(1, n - 1));
+      const narrow = road.clientWidth < 720;
       at = stops.map((s, i) => {
         s.style.left = `${pos[i]}%`;
+        // seven full names do not fit across a phone, so they shorten there
+        const label = s.firstElementChild;
+        const want = narrow ? s.dataset.abbr : s.dataset.full;
+        if (label && want && label.textContent !== want) label.textContent = want;
         const target = document.querySelector(s.dataset.for);
         return target ? Math.min(1, Math.max(0, (target.offsetTop - innerHeight * 0.35) / max)) : 1;
       });

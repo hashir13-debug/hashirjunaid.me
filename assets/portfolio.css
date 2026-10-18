@@ -643,3 +643,22 @@ button.pf-letter:hover { transform: translateY(-3px); border-color: var(--pf-ora
 }
 .pf-founder__mark img { height: 40px; }
 .pf-foot__axon img { height: 30px; }
+
+@media (max-width: 720px) {
+  :root { --pf-road: 68px; }
+  .pf-road__stop { bottom: 22px; }
+  .pf-road__stop span,
+  .pf-road__stop:not(.is-current) span { font-size: .52rem; padding: 2px 6px; letter-spacing: .03em; }
+  
+  .pf-road__stop:nth-child(even) span { margin-bottom: 15px; }
+  .pf-road__stop:nth-child(even)::before {
+    content: ""; position: absolute; left: 50%; bottom: 12px; width: 1px; height: 13px;
+    background: currentColor; opacity: .35;
+  }
+}
+
+[data-brand="portfolio"] { -webkit-tap-highlight-color: transparent; }
+[data-brand="portfolio"] :is(a, button, summary, [role="button"], [data-for]) {
+  -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+}
+[data-brand="portfolio"] :is(a, button):focus:not(:focus-visible) { outline: none; }

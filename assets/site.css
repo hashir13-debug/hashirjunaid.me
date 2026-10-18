@@ -563,3 +563,9 @@ section { padding-block: clamp(4.5rem, 9vw, 8.5rem); }
 .brandmark img { width: auto; height: 26px; border-radius: 0; }
 
 .hero--split h1, .hero--split .lede { animation: none !important; opacity: 1 !important; transform: none !important; }
+
+html, body { -webkit-tap-highlight-color: transparent; }
+:is(a, button, summary, [role="button"]) {
+  -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+}
+:is(a, button):focus:not(:focus-visible) { outline: none; }
