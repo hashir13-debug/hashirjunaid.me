@@ -76,6 +76,10 @@
   const beacon = async () => {
     const src = source();
     if (src === '') return;                                      // moving within the site
+    try {
+      if (sessionStorage.getItem('v-sent')) return;              // one row per visit, not per reload
+      sessionStorage.setItem('v-sent', '1');
+    } catch { /* private window: log it anyway */ }
     const g = await place();
     post({
       type: 'visit',
@@ -182,6 +186,15 @@
   const key = document.querySelector('[data-logkey]');
   if (key) key.addEventListener('click', (e) => { e.preventDefault(); pad(); });
 
-  if (document.readyState === 'complete') beacon();
-  else addEventListener('load', beacon, { once: true });
+  // Nothing here is urgent, and two calls to other hosts kept the browser's
+  // loading spinner turning long after the page was actually readable - which
+  // reads as a slow site. So the beacon waits for the page to finish, then for
+  // the browser to be idle, then another moment on top.
+  const later = () => {
+    const go = () => setTimeout(beacon, 1200);
+    if ('requestIdleCallback' in window) requestIdleCallback(go, { timeout: 3000 });
+    else setTimeout(go, 600);
+  };
+  if (document.readyState === 'complete') later();
+  else addEventListener('load', later, { once: true });
 })();
