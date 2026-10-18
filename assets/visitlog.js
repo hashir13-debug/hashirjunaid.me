@@ -1,15 +1,13 @@
 /* Visit log: a quiet record of who opened the site, and a hidden way in.
  *
- * Three parts:
- *   1. a beacon fired once per page view (date, timezone, device, source)
- *   2. a Google sign-in in front of the CV download, which is the only way a
- *      real name and e-mail can be known - the browser never hands those over
- *      on its own
- *   3. a dot in the footer nobody notices; a 4-digit PIN behind it opens the
+ * Two parts:
+ *   1. a beacon fired once per page view (time, place from the IP, device,
+ *      where they came from) - silent, nothing is asked of the visitor
+ *   2. a dot in the footer nobody notices; a 4-digit PIN behind it opens the
  *      panel. The PIN is also checked by the server, so the copy of it in this
  *      file (a hash) is only there to keep the pad honest, not to protect data.
  *
- * Endpoint and client id come from window.__visit, written at build time.
+ * The endpoint comes from window.__visit, written at build time.
  */
 (() => {
   const CFG = window.__visit || {};
@@ -87,46 +85,12 @@
     });
   };
 
-  /* -------------------------------------------- 2. sign-in before the CV */
-  // The CV buttons carry data-cv. Clicking one asks for a Google sign-in; on
-  // success the download starts and the verified name + e-mail are recorded.
-  const gate = () => {
-    const btns = [...document.querySelectorAll('[data-cv]')];
-    if (!btns.length || !CFG.clientId || !API) return;            // not set up: plain download
-
-    let pending = null;
-    const done = (resp) => {
-      post({ type: 'signin', credential: resp.credential, page: location.pathname })
-        .finally(() => { if (pending) { const a = pending; pending = null; location.href = a; } });
-    };
-
-    const load = () => new Promise((res) => {
-      if (window.google && google.accounts) return res();
-      const s = document.createElement('script');
-      s.src = 'https://accounts.google.com/gsi/client';
-      s.async = true; s.onload = res; s.onerror = res;
-      document.head.appendChild(s);
-    });
-
-    btns.forEach((b) => b.addEventListener('click', async (e) => {
-      if (sessionStorage.getItem('cv-ok')) return;                // already signed in here
-      e.preventDefault();
-      pending = b.getAttribute('href');
-      await load();
-      if (!window.google || !google.accounts) { location.href = pending; return; }
-      google.accounts.id.initialize({
-        client_id: CFG.clientId,
-        callback: (r) => { sessionStorage.setItem('cv-ok', '1'); done(r); },
-        cancel_on_tap_outside: true,
-      });
-      google.accounts.id.prompt((n) => {
-        // if Google will not show the one-tap, do not hold the download hostage
-        if (n.isNotDisplayed && n.isNotDisplayed()) { const a = pending; pending = null; location.href = a; }
-      });
-    }));
-  };
-
-  /* --------------------------------------------- 3. the dot and the panel */
+  /* ---------------------------------------------- 2. the dot and the panel
+   * Note: there is deliberately no sign-in, consent box or permission prompt
+   * anywhere in here. A visitor opens the site, reads it and downloads the CV
+   * without being asked for anything - that was the whole point. It also means
+   * no name and no e-mail are ever knowable, because the browser does not hand
+   * those over, and the only honest way to get them is to ask. */
   const fmt = (iso) => {
     const d = new Date(iso);
     return isNaN(d) ? iso : d.toLocaleString('en-GB', {
@@ -206,6 +170,6 @@
   const key = document.querySelector('[data-logkey]');
   if (key) key.addEventListener('click', (e) => { e.preventDefault(); pad(); });
 
-  if (document.readyState === 'complete') { beacon(); gate(); }
-  else addEventListener('load', () => { beacon(); gate(); }, { once: true });
+  if (document.readyState === 'complete') beacon();
+  else addEventListener('load', beacon, { once: true });
 })();
