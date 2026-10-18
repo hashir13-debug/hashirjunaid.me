@@ -56,14 +56,30 @@
     return [kind, os, br].filter(Boolean).join(' · ');
   };
 
-  const beacon = () => {
+  // City and country come from the IP, which needs no permission and shows no
+  // prompt. (The precise, GPS kind would ask, so it is deliberately not used.)
+  // If the lookup is slow or blocked the visit is still recorded without it.
+  const place = () => new Promise((done) => {
+    const t = setTimeout(() => done({}), 1500);
+    fetch('https://ipwho.is/', { mode: 'cors' })
+      .then((r) => r.json())
+      .then((d) => { clearTimeout(t); done(d && d.success === false ? {} : d || {}); })
+      .catch(() => { clearTimeout(t); done({}); });
+  });
+
+  const beacon = async () => {
     const src = source();
     if (src === '') return;                                      // moving within the site
+    const g = await place();
     post({
       type: 'visit',
       page: location.pathname.replace(/index\.html$/, '') || '/',
       source: src,
       device: device(),
+      city: g.city || '',
+      region: g.region || '',
+      country: g.country || '',
+      isp: (g.connection && g.connection.isp) || '',
       zone: Intl.DateTimeFormat().resolvedOptions().timeZone || '',
       lang: navigator.language || '',
       screen: `${screen.width}x${screen.height}`,
@@ -147,10 +163,12 @@
       const rows = (data.rows || []).filter((r) => (r.type || 'visit') === kind);
       if (!rows.length) { body.innerHTML = '<p class="pf-log__empty">Nothing recorded yet.</p>'; return; }
       const head = kind === 'visit'
-        ? '<tr><th>When</th><th>From</th><th>Where</th><th>Device</th><th>Page</th></tr>'
+        ? '<tr><th>When</th><th>From</th><th>Where</th><th>Network</th><th>Device</th><th>Page</th></tr>'
         : '<tr><th>When</th><th>Name</th><th>E-mail</th><th>Page</th></tr>';
+      const where = (r) => [r.city, r.country].filter(Boolean).join(', ')
+        || (r.zone || '').split('/').pop().replace(/_/g, ' ');
       const line = (r) => kind === 'visit'
-        ? `<tr><td>${fmt(r.at)}</td><td>${r.source || ''}</td><td>${(r.zone || '').split('/').pop()}</td><td>${r.device || ''}</td><td>${r.page || ''}</td></tr>`
+        ? `<tr><td>${fmt(r.at)}</td><td>${r.source || ''}</td><td>${where(r)}</td><td>${r.isp || ''}</td><td>${r.device || ''}</td><td>${r.page || ''}</td></tr>`
         : `<tr><td>${fmt(r.at)}</td><td>${r.name || ''}</td><td>${r.email || ''}</td><td>${r.page || ''}</td></tr>`;
       body.innerHTML = `<div class="pf-log__count">${rows.length} recorded</div>
         <table class="pf-log__table">${head}${rows.map(line).join('')}</table>`;
