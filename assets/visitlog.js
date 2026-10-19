@@ -119,10 +119,13 @@
   const panel = async (pin) => {
     const box = document.createElement('div');
     box.className = 'pf-log';
+    const sheetBtn = CFG.sheet
+      ? `<a class="pf-log__sheet" href="${CFG.sheet}" target="_blank" rel="noopener">Open sheet &#8599;</a>`
+      : '';
     box.innerHTML = `<div class="pf-log__card" role="dialog" aria-label="Visit log">
-      <div class="pf-log__head"><b>Who opened this</b>
+      <div class="pf-log__head"><b>Who opened this</b>${sheetBtn}
         <button class="pf-log__x" aria-label="Close">&times;</button></div>
-      <div class="pf-log__body">Loading&hellip;</div></div>`;
+      <div class="pf-log__body"><p class="pf-log__empty">Loading&hellip;</p></div></div>`;
     document.body.appendChild(box);
     const body = box.querySelector('.pf-log__body');
     const close = () => box.remove();
@@ -135,8 +138,17 @@
       data = await r.json();
     } catch { /* shown below */ }
 
+    // The log is a convenience, never a dependency. If the sheet is deleted or
+    // the script switched off, the site carries on exactly as before and this
+    // panel simply says so.
+    if (!API) {
+      body.innerHTML = '<p class="pf-log__empty">No log is connected.<br><small>The site runs normally; nothing is being recorded.</small></p>';
+      return;
+    }
     if (!data || data.ok === false) {
-      body.innerHTML = `<p class="pf-log__empty">Could not reach the log.${API ? '' : ' No endpoint is configured yet.'}</p>`;
+      body.innerHTML = '<p class="pf-log__empty">The log is not answering.<br>'
+        + '<small>The sheet may have been deleted or the script turned off. Visits are not being recorded,'
+        + ' and the site itself is completely unaffected.</small></p>';
       return;
     }
 

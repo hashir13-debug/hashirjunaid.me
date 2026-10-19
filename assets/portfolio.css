@@ -698,6 +698,12 @@ button.pf-letter:hover { transform: translateY(-3px); border-color: var(--pf-ora
 .pf-log__table td:last-child { white-space: normal; color: var(--pf-ink-2); }
 .pf-log__empty { color: var(--pf-ink-3); padding: 1.5rem 0; text-align: center; }
 .pf-log__tag { background: #FFF1E6; color: #C4500A; border-radius: 100px; padding: .1rem .5rem; font-size: .76rem; }
+.pf-log__sheet {
+  margin-left: auto; font-size: .78rem; text-decoration: none; color: var(--pf-ink-2);
+  border: 1px solid rgb(20 32 58 / .14); border-radius: 100px; padding: .3rem .75rem; white-space: nowrap;
+}
+.pf-log__sheet:hover { border-color: var(--pf-orange); color: var(--pf-orange); }
+.pf-log__empty small { display: block; margin-top: .5rem; font-size: .82rem; opacity: .85; line-height: 1.5; }
 .pf-log__pin { display: flex; flex-direction: column; align-items: center; gap: .5rem; }
 .pf-log__pin input {
   width: 128px; text-align: center; font-family: var(--pf-mono); font-size: 1.5rem;
