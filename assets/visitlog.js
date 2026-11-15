@@ -122,8 +122,10 @@
     const sheetBtn = CFG.sheet
       ? `<a class="pf-log__sheet" href="${CFG.sheet}" target="_blank" rel="noopener">Open sheet &#8599;</a>`
       : '';
+    // the same dot that shows the log is also the way into the editor
+    const studioBtn = '<a class="pf-log__sheet pf-log__studio" href="/studio/">Edit site &#8599;</a>';
     box.innerHTML = `<div class="pf-log__card" role="dialog" aria-label="Visit log">
-      <div class="pf-log__head"><b>Who opened this</b>${sheetBtn}
+      <div class="pf-log__head"><b>Who opened this</b>${studioBtn}${sheetBtn}
         <button class="pf-log__x" aria-label="Close">&times;</button></div>
       <div class="pf-log__body"><p class="pf-log__empty">Loading&hellip;</p></div></div>`;
     document.body.appendChild(box);
