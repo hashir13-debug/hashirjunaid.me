@@ -1,0 +1,388 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Studio</title>
+<!--
+  The editor for the portfolio: it reads and writes the content files in the
+  private source repository straight from this page, and GitHub then rebuilds
+  and publishes both sites. No laptop, no code, no terminal - a phone is enough.
+
+  The GitHub token never leaves this device: it is kept in this browser's own
+  storage and sent only to api.github.com.
+-->
+<style>
+  :root {
+    --ink: #14203A; --ink-2: #4B5773; --ink-3: #7C879E;
+    --line: rgb(20 32 58 / .12); --bg: #F7F8FB; --card: #fff;
+    --orange: #F2670E; --ok: #0E9F6E; --bad: #D64545;
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); -webkit-tap-highlight-color: transparent; }
+  header {
+    position: sticky; top: 0; z-index: 10; background: #fffffff2; backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--line); padding: .7rem 1rem;
+    display: flex; align-items: center; gap: .6rem;
+  }
+  header b { font-size: 1rem; }
+  .wrap { max-width: 860px; margin: 0 auto; padding: 1rem 1rem 6rem; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 1rem; margin: 0 0 1rem; }
+  .card h2 { font-size: .78rem; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3); margin: 0 0 .9rem; }
+  label { display: block; font-size: .78rem; color: var(--ink-2); margin: .75rem 0 .25rem; }
+  input[type=text], input[type=password], textarea, select {
+    width: 100%; font: inherit; font-size: .92rem; color: var(--ink); background: #fff;
+    border: 1px solid var(--line); border-radius: 9px; padding: .6rem .7rem;
+  }
+  textarea { min-height: 76px; resize: vertical; line-height: 1.5; }
+  input:focus, textarea:focus, select:focus { outline: 2px solid var(--orange); outline-offset: 1px; border-color: transparent; }
+  .hint { font-size: .76rem; color: var(--ink-3); margin: .3rem 0 0; line-height: 1.5; }
+  .row { display: flex; gap: .6rem; flex-wrap: wrap; }
+  .row > * { flex: 1 1 220px; }
+  button {
+    font: inherit; font-size: .88rem; border-radius: 100px; border: 1px solid var(--line);
+    background: #fff; color: var(--ink); padding: .55rem 1rem; cursor: pointer;
+  }
+  button.primary { background: var(--orange); border-color: var(--orange); color: #fff; font-weight: 600; }
+  button.primary:disabled { opacity: .45; cursor: default; }
+  button:hover:not(:disabled) { border-color: var(--orange); }
+  .bar {
+    position: fixed; left: 0; right: 0; bottom: 0; background: #fffffff5; backdrop-filter: blur(8px);
+    border-top: 1px solid var(--line); padding: .7rem 1rem;
+    display: flex; align-items: center; gap: .7rem; justify-content: space-between;
+  }
+  .bar .state { font-size: .82rem; color: var(--ink-2); }
+  .pill { font-size: .72rem; border-radius: 100px; padding: .18rem .6rem; border: 1px solid var(--line); color: var(--ink-2); }
+  .pill.ok { color: var(--ok); border-color: #0E9F6E55; background: #0E9F6E12; }
+  .pill.bad { color: var(--bad); border-color: #D6454555; background: #D6454512; }
+  .pill.work { color: var(--orange); border-color: #F2670E55; background: #F2670E12; }
+  .tabs { display: flex; gap: .35rem; overflow-x: auto; padding: .15rem 0 .6rem; }
+  .tabs button { white-space: nowrap; font-size: .8rem; padding: .4rem .8rem; }
+  .tabs button.on { background: var(--ink); border-color: var(--ink); color: #fff; }
+  .item { border: 1px solid var(--line); border-radius: 11px; padding: .8rem; margin: 0 0 .7rem; }
+  .item h3 { margin: 0 0 .2rem; font-size: .95rem; }
+  .muted { color: var(--ink-3); font-size: .8rem; }
+  .gate { max-width: 420px; margin: 12vh auto; }
+  .steps { font-size: .84rem; color: var(--ink-2); line-height: 1.65; padding-left: 1.1rem; }
+  .steps code { background: #EEF1F7; border-radius: 5px; padding: .05rem .35rem; font-size: .82rem; }
+  .hide { display: none !important; }
+  @media (max-width: 560px) { .wrap { padding: .7rem .7rem 6rem; } .card { padding: .8rem; } }
+</style>
+</head>
+<body>
+
+<div id="gate" class="gate wrap">
+  <div class="card">
+    <h2>Portfolio studio</h2>
+    <p class="hint">Everything on hashirjunaid.me and axonsystems.tech is edited here. Changes are saved to
+      the private source repository and both sites rebuild themselves, usually within a minute.</p>
+    <label for="tok">GitHub token</label>
+    <input id="tok" type="password" placeholder="github_pat_..." autocomplete="off">
+    <p class="hint">Kept on this device only, never sent anywhere except GitHub.</p>
+    <p style="margin:.9rem 0 0"><button class="primary" id="go">Open studio</button>
+      <button id="help" type="button">How do I get a token?</button></p>
+    <div id="helpBox" class="hide" style="margin-top:.9rem">
+      <ol class="steps">
+        <li>On GitHub: <b>Settings → Developer settings → Personal access tokens → Fine-grained tokens</b></li>
+        <li><b>Generate new token</b>. Give it a name and an expiry (a year is fine).</li>
+        <li>Repository access: <b>Only select repositories</b> → <code>portfolio-source</code></li>
+        <li>Permissions → Repository permissions: <b>Contents: Read and write</b>, <b>Actions: Read-only</b></li>
+        <li>Generate, copy it, paste it above.</li>
+      </ol>
+    </div>
+    <p id="gateErr" class="hint" style="color:var(--bad)"></p>
+  </div>
+</div>
+
+<div id="app" class="hide">
+  <header>
+    <b>Studio</b>
+    <span id="status" class="pill">idle</span>
+    <span style="margin-left:auto"></span>
+    <button id="forget" type="button">Sign out</button>
+  </header>
+
+  <div class="wrap">
+    <div class="tabs" id="tabs"></div>
+    <div id="panels"></div>
+  </div>
+
+  <div class="bar">
+    <span class="state" id="state">No changes yet</span>
+    <span>
+      <button id="reload" type="button">Reload</button>
+      <button class="primary" id="save" disabled>Save &amp; publish</button>
+    </span>
+  </div>
+</div>
+
+<script>
+(() => {
+  const OWNER = 'hashir13-debug', REPO = 'portfolio-source', BRANCH = 'main';
+  const API = `https://api.github.com/repos/${OWNER}/${REPO}`;
+  const FILES = { profile: 'docs/content/profile.json', products: 'docs/content/products.json' };
+  const CV = 'shared/cv/hashir-junaid-cv.pdf';
+
+  const $ = (s) => document.querySelector(s);
+  const el = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
+  let token = '', data = {}, sha = {}, dirty = new Set(), cvFile = null;
+
+  /* ---------------------------------------------------------------- github */
+  const gh = async (path, opts = {}) => {
+    const r = await fetch(path.startsWith('http') ? path : API + path, {
+      ...opts,
+      headers: { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github+json', ...(opts.headers || {}) },
+    });
+    if (!r.ok) throw new Error(`${r.status} ${(await r.text()).slice(0, 120)}`);
+    return r.json();
+  };
+
+  const readFile = async (path) => {
+    const j = await gh(`/contents/${path}?ref=${BRANCH}`);
+    const text = new TextDecoder().decode(Uint8Array.from(atob(j.content.replace(/\n/g, '')), (c) => c.charCodeAt(0)));
+    return { json: JSON.parse(text), sha: j.sha };
+  };
+
+  const b64 = (bytes) => { let s = ''; bytes.forEach((b) => { s += String.fromCharCode(b); }); return btoa(s); };
+
+  const writeFile = (path, contentB64, shaOld, message) => gh(`/contents/${path}`, {
+    method: 'PUT',
+    body: JSON.stringify({ message, content: contentB64, sha: shaOld, branch: BRANCH }),
+  });
+
+  /* ------------------------------------------------------------------ ui */
+  const mark = (key) => { dirty.add(key); $('#save').disabled = false; $('#state').textContent = `${dirty.size} change${dirty.size > 1 ? 's' : ''} waiting`; };
+
+  const field = (parent, label, value, onInput, long) => {
+    parent.append(el('label', null, label));
+    const n = document.createElement(long ? 'textarea' : 'input');
+    if (!long) n.type = 'text';
+    n.value = value ?? '';
+    n.addEventListener('input', () => onInput(n.value));
+    parent.append(n);
+    return n;
+  };
+
+  const lines = (parent, label, arr, onChange) => {
+    parent.append(el('label', null, `${label} — one per line`));
+    const n = el('textarea');
+    n.value = (arr || []).join('\n');
+    n.style.minHeight = '110px';
+    n.addEventListener('input', () => onChange(n.value.split('\n').map((s) => s.trim()).filter(Boolean)));
+    parent.append(n);
+  };
+
+  const panels = {};
+
+  panels['About you'] = () => {
+    const p = data.profile, box = el('div', 'card');
+    box.append(el('h2', null, 'The basics'));
+    const row = el('div', 'row');
+    field(row, 'Name', p.name, (v) => { p.name = v; mark('profile'); });
+    field(row, 'Title', p.title, (v) => { p.title = v; mark('profile'); });
+    box.append(row);
+    field(box, 'Subtitle', p.subtitle, (v) => { p.subtitle = v; mark('profile'); });
+    field(box, 'Location', p.location, (v) => { p.location = v; mark('profile'); });
+    field(box, 'Intro', p.intro, (v) => { p.intro = v; mark('profile'); }, true);
+    const row2 = el('div', 'row');
+    field(row2, 'LinkedIn', p.links?.linkedin, (v) => { p.links.linkedin = v; mark('profile'); });
+    field(row2, 'GitHub', p.links?.github, (v) => { p.links.github = v; mark('profile'); });
+    box.append(row2);
+    return box;
+  };
+
+  panels['Experience'] = () => {
+    const box = el('div', 'card');
+    box.append(el('h2', null, 'Work and study'));
+    (data.profile.timeline || []).forEach((t) => {
+      const it = el('div', 'item');
+      it.append(el('h3', null, `${t.role || ''} · ${t.org || ''}`));
+      const row = el('div', 'row');
+      field(row, 'Role', t.role, (v) => { t.role = v; mark('profile'); });
+      field(row, 'Organisation', t.org, (v) => { t.org = v; mark('profile'); });
+      it.append(row);
+      const row2 = el('div', 'row');
+      field(row2, 'When', t.when, (v) => { t.when = v; mark('profile'); });
+      field(row2, 'Where', t.where, (v) => { t.where = v; mark('profile'); });
+      it.append(row2);
+      lines(it, 'Points', t.notes, (v) => { t.notes = v; mark('profile'); });
+      box.append(it);
+    });
+    return box;
+  };
+
+  panels['Products'] = () => {
+    const box = el('div', 'card');
+    box.append(el('h2', null, 'Axon products'));
+    (data.products.products || []).forEach((pr) => {
+      const it = el('div', 'item');
+      it.append(el('h3', null, pr.name));
+      field(it, 'Tagline', pr.tagline, (v) => { pr.tagline = v; mark('products'); });
+      field(it, 'What it gives you', pr.benefit, (v) => { pr.benefit = v; mark('products'); }, true);
+      lines(it, 'Highlights', pr.highlights, (v) => { pr.highlights = v; mark('products'); });
+      box.append(it);
+    });
+    return box;
+  };
+
+  panels['Side projects'] = () => {
+    const box = el('div', 'card');
+    box.append(el('h2', null, 'Your own projects'));
+    (data.profile.sideProjects || []).forEach((s) => {
+      const it = el('div', 'item');
+      it.append(el('h3', null, s.name));
+      field(it, 'Name', s.name, (v) => { s.name = v; mark('profile'); });
+      field(it, 'Stack', s.stack, (v) => { s.stack = v; mark('profile'); });
+      field(it, 'Description', s.blurb, (v) => { s.blurb = v; mark('profile'); }, true);
+      box.append(it);
+    });
+    return box;
+  };
+
+  panels['CV'] = () => {
+    const box = el('div', 'card');
+    box.append(el('h2', null, 'The CV people download'));
+    box.append(el('p', 'hint', 'Upload a PDF to replace it. It goes live with the next publish.'));
+    const inp = document.createElement('input');
+    inp.type = 'file'; inp.accept = 'application/pdf';
+    inp.style.marginTop = '.7rem';
+    const note = el('p', 'hint');
+    inp.addEventListener('change', () => {
+      const f = inp.files[0];
+      if (!f) return;
+      if (f.type !== 'application/pdf') { note.textContent = 'That is not a PDF.'; return; }
+      cvFile = f;
+      note.textContent = `Ready to upload: ${f.name} (${Math.round(f.size / 1024)} KB)`;
+      mark('cv');
+    });
+    box.append(inp, note);
+    const link = el('p', 'hint');
+    link.innerHTML = 'Current: <a href="https://hashirjunaid.me/assets/hashir-junaid-cv.pdf" target="_blank" rel="noopener">open the published CV</a>';
+    box.append(link);
+    return box;
+  };
+
+  panels['Advanced'] = () => {
+    const box = el('div', 'card');
+    box.append(el('h2', null, 'Raw content files'));
+    box.append(el('p', 'hint', 'Everything the forms above do not cover. Invalid JSON will not save.'));
+    ['profile', 'products'].forEach((key) => {
+      box.append(el('label', null, FILES[key]));
+      const t = el('textarea');
+      t.style.minHeight = '240px';
+      t.style.fontFamily = 'ui-monospace, SFMono-Regular, Menlo, monospace';
+      t.style.fontSize = '.78rem';
+      t.value = JSON.stringify(data[key], null, 2);
+      const msg = el('p', 'hint');
+      t.addEventListener('input', () => {
+        try { data[key] = JSON.parse(t.value); msg.textContent = 'Valid'; msg.style.color = 'var(--ok)'; mark(key); }
+        catch (e) { msg.textContent = String(e.message).slice(0, 80); msg.style.color = 'var(--bad)'; }
+      });
+      box.append(t, msg);
+    });
+    return box;
+  };
+
+  const show = (name) => {
+    [...$('#tabs').children].forEach((b) => b.classList.toggle('on', b.textContent === name));
+    const host = $('#panels');
+    host.textContent = '';
+    host.append(panels[name]());
+  };
+
+  /* ------------------------------------------------------------- publish */
+  const setStatus = (text, kind) => { const s = $('#status'); s.textContent = text; s.className = `pill ${kind || ''}`; };
+
+  const watchBuild = async () => {
+    setStatus('publishing', 'work');
+    for (let i = 0; i < 40; i++) {
+      await new Promise((r) => setTimeout(r, 6000));
+      try {
+        const j = await gh('/actions/runs?per_page=1');
+        const run = j.workflow_runs?.[0];
+        if (!run) continue;
+        if (run.status === 'completed') {
+          const good = run.conclusion === 'success';
+          setStatus(good ? 'live' : `build ${run.conclusion}`, good ? 'ok' : 'bad');
+          $('#state').textContent = good ? 'Published. The sites are updated.' : 'The build failed - check Actions on GitHub.';
+          return;
+        }
+        setStatus(run.status.replace('_', ' '), 'work');
+      } catch { /* keep waiting */ }
+    }
+    setStatus('still building', 'work');
+  };
+
+  const save = async () => {
+    $('#save').disabled = true;
+    setStatus('saving', 'work');
+    try {
+      for (const key of ['profile', 'products']) {
+        if (!dirty.has(key)) continue;
+        const text = JSON.stringify(data[key], null, 2) + '\n';
+        const bytes = new TextEncoder().encode(text);
+        const res = await writeFile(FILES[key], b64(bytes), sha[key], `Studio: update ${key}`);
+        sha[key] = res.content.sha;
+      }
+      if (dirty.has('cv') && cvFile) {
+        const buf = new Uint8Array(await cvFile.arrayBuffer());
+        const cur = await gh(`/contents/${CV}?ref=${BRANCH}`);
+        await writeFile(CV, b64(buf), cur.sha, 'Studio: new CV');
+        cvFile = null;
+      }
+      dirty.clear();
+      $('#state').textContent = 'Saved. Building…';
+      watchBuild();
+    } catch (e) {
+      setStatus('save failed', 'bad');
+      $('#state').textContent = String(e.message).slice(0, 140);
+      $('#save').disabled = false;
+    }
+  };
+
+  /* ---------------------------------------------------------------- boot */
+  const load = async () => {
+    setStatus('loading', 'work');
+    const [p, pr] = await Promise.all([readFile(FILES.profile), readFile(FILES.products)]);
+    data.profile = p.json; sha.profile = p.sha;
+    data.products = pr.json; sha.products = pr.sha;
+    dirty.clear(); cvFile = null;
+    $('#save').disabled = true;
+    $('#state').textContent = 'No changes yet';
+    const names = Object.keys(panels);
+    const tabs = $('#tabs');
+    tabs.textContent = '';
+    names.forEach((n) => { const b = el('button', null, n); b.onclick = () => show(n); tabs.append(b); });
+    show(names[0]);
+    setStatus('ready', 'ok');
+  };
+
+  const open = async (t) => {
+    token = t;
+    try {
+      await gh('');                                  // does the token actually work?
+      localStorage.setItem('studio-token', t);
+      $('#gate').classList.add('hide');
+      $('#app').classList.remove('hide');
+      await load();
+    } catch (e) {
+      $('#gateErr').textContent = `That token did not work (${String(e.message).slice(0, 60)}). Check it has Contents: read and write on portfolio-source.`;
+      token = '';
+    }
+  };
+
+  $('#go').onclick = () => open($('#tok').value.trim());
+  $('#tok').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('#go').click(); });
+  $('#help').onclick = () => $('#helpBox').classList.toggle('hide');
+  $('#save').onclick = save;
+  $('#reload').onclick = load;
+  $('#forget').onclick = () => { localStorage.removeItem('studio-token'); location.reload(); };
+
+  const saved = localStorage.getItem('studio-token');
+  if (saved) open(saved);
+})();
+</script>
+</body>
+</html>
