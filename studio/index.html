@@ -79,33 +79,34 @@
     <p class="hint">Everything on hashirjunaid.me and axonsystems.tech is edited here &mdash; the words on
       every page, the CV, the certificates and the letters. Saving rebuilds and publishes both sites,
       usually within a minute.</p>
-    <div id="passBox" class="hide">
-      <label for="pass">Your password</label>
-      <input id="pass" type="password" placeholder="the password you chose" autocomplete="current-password">
-      <p class="hint">Unlocks the editor on this device. Nothing else to enter, ever.</p>
-      <p style="margin:.9rem 0 0"><button class="primary" id="goPass">Open studio</button>
-        <button id="useTok" type="button">Use a token instead</button></p>
+
+    <div id="pinBox">
+      <label for="pin">PIN</label>
+      <input id="pin" type="password" inputmode="numeric" maxlength="8" placeholder="····" autocomplete="off">
+      <p class="hint">The same four digits as the panel. Nothing else to remember.</p>
+      <p style="margin:.9rem 0 0"><button class="primary" id="go">Open studio</button></p>
     </div>
 
-    <div id="tokBox">
+    <div id="installBox" class="hide">
       <p class="hint" style="background:#FFF4EC;border:1px solid #F2670E33;border-radius:10px;padding:.6rem .7rem">
-        <b>First time only.</b> Paste the token once, and the next screen offers to set a password.
-        After that this box never appears again &mdash; on any phone or laptop, the password is enough.</p>
+        <b>One-time setup.</b> Hand over a GitHub token once and it is kept on your own Google script,
+        never in a browser. After this, the PIN alone opens the editor on every device &mdash; this box
+        never comes back.</p>
       <label for="tok">GitHub token</label>
       <input id="tok" type="password" placeholder="github_pat_..." autocomplete="off">
-      <p class="hint">Kept on this device only, never sent anywhere except GitHub.</p>
-      <p style="margin:.9rem 0 0"><button class="primary" id="go">Open studio</button>
-        <button id="help" type="button">How do I get a token?</button></p>
+      <p style="margin:.9rem 0 0"><button class="primary" id="install">Save it and finish</button>
+        <button id="help" type="button">Where do I get one?</button></p>
+      <div id="helpBox" class="hide" style="margin-top:.9rem">
+        <ol class="steps">
+          <li>On GitHub: <b>Settings → Developer settings → Personal access tokens → Fine-grained tokens</b></li>
+          <li><b>Generate new token</b>, name it, pick an expiry.</li>
+          <li>Repository access: <b>Only select repositories</b> → <code>portfolio-source</code></li>
+          <li>Permissions: <b>Contents: Read and write</b>, <b>Actions: Read-only</b></li>
+          <li>Generate, copy, paste above.</li>
+        </ol>
+      </div>
     </div>
-    <div id="helpBox" class="hide" style="margin-top:.9rem">
-      <ol class="steps">
-        <li>On GitHub: <b>Settings → Developer settings → Personal access tokens → Fine-grained tokens</b></li>
-        <li><b>Generate new token</b>. Give it a name and an expiry (a year is fine).</li>
-        <li>Repository access: <b>Only select repositories</b> → <code>portfolio-source</code></li>
-        <li>Permissions → Repository permissions: <b>Contents: Read and write</b>, <b>Actions: Read-only</b></li>
-        <li>Generate, copy it, paste it above.</li>
-      </ol>
-    </div>
+
     <p id="gateErr" class="hint" style="color:var(--bad)"></p>
   </div>
 </div>
@@ -134,8 +135,6 @@
 
 <script>
 (() => {
-  const OWNER = 'hashir13-debug', REPO = 'portfolio-source', BRANCH = 'main';
-  const API = `https://api.github.com/repos/${OWNER}/${REPO}`;
   const FILES = {
     profile: 'docs/content/profile.json',
     products: 'docs/content/products.json',
@@ -144,63 +143,43 @@
   };
   const CV = 'shared/cv/hashir-junaid-cv.pdf';
 
-  // Where the locked-up token sits once a password has been set. It is part of
-  // the published site, which is why it is encrypted and why the password has
-  // to be a real one rather than four digits.
-  const VAULT = 'studio-key.json';
+  // The editor talks to Hashir's own Apps Script, which holds the GitHub token
+  // and does the writing. The browser never sees a token, so the PIN that
+  // opened the panel is the only thing to know.
+  const DESK = 'https://script.google.com/macros/s/AKfycbwnRuq_QsObKcA_D1HWyAIx5LwlNRXFtO9GyD9npajEY-5V8hHDnDEmbQpCcthvyTMK/exec'.startsWith('http') ? 'https://script.google.com/macros/s/AKfycbwnRuq_QsObKcA_D1HWyAIx5LwlNRXFtO9GyD9npajEY-5V8hHDnDEmbQpCcthvyTMK/exec'
+    : (new URLSearchParams(location.search).get('desk') || '');
   const $ = (s) => document.querySelector(s);
-
-  /* --------------------------------------------------- password <-> token */
-  const enc = new TextEncoder(), dec = new TextDecoder();
-  const keyFrom = async (pass, salt) => {
-    const base = await crypto.subtle.importKey('raw', enc.encode(pass), 'PBKDF2', false, ['deriveKey']);
-    return crypto.subtle.deriveKey(
-      { name: 'PBKDF2', salt, iterations: 250000, hash: 'SHA-256' },
-      base, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
-  };
-  const bytesToB64 = (b) => btoa(String.fromCharCode(...b));
-  const b64ToBytes = (s) => Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
-
-  const lockUp = async (secret, pass) => {
-    const salt = crypto.getRandomValues(new Uint8Array(16));
-    const iv = crypto.getRandomValues(new Uint8Array(12));
-    const key = await keyFrom(pass, salt);
-    const out = new Uint8Array(await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, enc.encode(secret)));
-    return { v: 1, salt: bytesToB64(salt), iv: bytesToB64(iv), data: bytesToB64(out) };
-  };
-
-  const unlock = async (vault, pass) => {
-    const key = await keyFrom(pass, b64ToBytes(vault.salt));
-    const out = await crypto.subtle.decrypt(
-      { name: 'AES-GCM', iv: b64ToBytes(vault.iv) }, key, b64ToBytes(vault.data));
-    return dec.decode(out);
-  };
   const el = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
-  let token = '', data = {}, sha = {}, dirty = new Set(), cvFile = null;
+
+  let pin = '', data = {}, sha = {}, dirty = new Set(), cvFile = null;
   let uploads = [];                     // images picked in the forms, sent on save
 
-  /* ---------------------------------------------------------------- github */
-  const gh = async (path, opts = {}) => {
-    const r = await fetch(path.startsWith('http') ? path : API + path, {
-      ...opts,
-      headers: { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github+json', ...(opts.headers || {}) },
+  /* ------------------------------------------------- talking to the desk */
+  const ask = async (action, extra = {}) => {
+    if (!DESK) throw new Error('No back end is configured for this site.');
+    const r = await fetch(DESK, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },   // no CORS preflight
+      body: JSON.stringify({ action, pin, ...extra }),
     });
-    if (!r.ok) throw new Error(`${r.status} ${(await r.text()).slice(0, 120)}`);
-    return r.json();
+    const j = await r.json().catch(() => ({ ok: false, error: 'bad reply' }));
+    if (!j.ok) throw new Error(j.error || 'refused');
+    return j;
   };
 
   const readFile = async (path) => {
-    const j = await gh(`/contents/${path}?ref=${BRANCH}`);
-    const text = new TextDecoder().decode(Uint8Array.from(atob(j.content.replace(/\n/g, '')), (c) => c.charCodeAt(0)));
+    const j = await ask('read', { path });
+    const clean = String(j.content).replace(/\s+/g, '');     // GitHub wraps base64
+    const text = new TextDecoder().decode(Uint8Array.from(atob(clean), (c) => c.charCodeAt(0)));
     return { json: JSON.parse(text), sha: j.sha };
   };
 
   const b64 = (bytes) => { let s = ''; bytes.forEach((b) => { s += String.fromCharCode(b); }); return btoa(s); };
 
-  const writeFile = (path, contentB64, shaOld, message) => gh(`/contents/${path}`, {
-    method: 'PUT',
-    body: JSON.stringify({ message, content: contentB64, sha: shaOld, branch: BRANCH }),
-  });
+  const writeFile = async (path, contentB64, shaOld, message) => {
+    const j = await ask('write', { path, content: contentB64, sha: shaOld, message });
+    return { content: { sha: j.sha } };
+  };
 
   /* ------------------------------------------------------------------ ui */
   const mark = (key) => { dirty.add(key); $('#save').disabled = false; $('#state').textContent = `${dirty.size} change${dirty.size > 1 ? 's' : ''} waiting`; };
@@ -496,16 +475,17 @@
     for (let i = 0; i < 40; i++) {
       await new Promise((r) => setTimeout(r, 6000));
       try {
-        const j = await gh('/actions/runs?per_page=1');
-        const run = j.workflow_runs?.[0];
+        const { run } = await ask('status');
         if (!run) continue;
         if (run.status === 'completed') {
           const good = run.conclusion === 'success';
           setStatus(good ? 'live' : `build ${run.conclusion}`, good ? 'ok' : 'bad');
-          $('#state').textContent = good ? 'Published. The sites are updated.' : 'The build failed - check Actions on GitHub.';
+          $('#state').textContent = good
+            ? 'Published. The sites are updated.'
+            : 'The build failed - check Actions on GitHub.';
           return;
         }
-        setStatus(run.status.replace('_', ' '), 'work');
+        setStatus(String(run.status).replace('_', ' '), 'work');
       } catch { /* keep waiting */ }
     }
     setStatus('still building', 'work');
@@ -570,123 +550,67 @@
     tabs.textContent = '';
     names.forEach((n) => { const b = el('button', null, n); b.onclick = () => show(n); tabs.append(b); });
 
-    // No password set yet? Start on that tab rather than leaving him to find
-    // it: it is the one thing that stops the token coming back.
-    let vaultExists = false;
-    try { vaultExists = !!(await (await fetch(`${VAULT}?v=${Date.now()}`)).json()).data; } catch { /* none */ }
-    show(vaultExists ? names[0] : 'Password');
-    if (!vaultExists) {
-      const tip = el('div', 'card');
-      tip.style.cssText = 'background:#FFF4EC;border-color:#F2670E44';
-      tip.innerHTML = '<b>One thing left.</b> Set a password below and you will never be asked for '
-        + 'a GitHub token again, on this or any other device.';
-      $('#panels').prepend(tip);
-    }
+    show(names[0]);
     setStatus('ready', 'ok');
   };
 
-  const open = async (t) => {
-    token = t;
+  const openWithPin = async (value) => {
+    pin = value.trim();
+    if (!pin) return;
+    $('#gateErr').textContent = 'Checking…';
     try {
-      const repo = await gh('');                     // does the token actually work?
-      // A token that can only read looks fine until the first save fails, so
-      // say it here instead.
-      if (repo && repo.permissions && repo.permissions.push === false) {
-        $('#gateErr').innerHTML = 'This token can <b>read</b> the repository but not <b>write</b> to it, '
-          + 'so nothing could be saved. On GitHub, edit the token and set <b>Repository permissions → '
-          + 'Contents: Read and write</b>, then paste it again.';
-        token = '';
+      const r = await ask('ping');
+      $('#gateErr').textContent = '';
+      if (!r.hasToken) {                       // first run: ask for the token once
+        $('#pinBox').classList.add('hide');
+        $('#installBox').classList.remove('hide');
+        $('#tok').focus();
         return;
       }
-      localStorage.setItem('studio-token', t);
+      sessionStorage.setItem('studio-pin', pin);
       $('#gate').classList.add('hide');
       $('#app').classList.remove('hide');
       await load();
     } catch (e) {
-      $('#gateErr').textContent = `That token did not work (${String(e.message).slice(0, 60)}). Check it has Contents: read and write on portfolio-source.`;
-      token = '';
+      const m = String(e.message);
+      $('#gateErr').textContent = m === 'locked'
+        ? 'Too many wrong PINs. The desk is closed for an hour.'
+        : m === 'pin' ? 'That PIN is not right.' : `Could not reach the desk: ${m.slice(0, 80)}`;
+      pin = '';
     }
   };
 
-  /* ------------------------------------------- opening with the password */
-  const fromPassword = async () => {
-    const pass = $('#pass').value;
-    if (!pass) return;
-    $('#gateErr').textContent = 'Unlocking…';
+  const install = async () => {
+    const t = $('#tok').value.trim();
+    if (!t) return;
+    $('#gateErr').textContent = 'Saving the token to your script…';
     try {
-      const vault = await (await fetch(`${VAULT}?v=${Date.now()}`)).json();
-      const t = await unlock(vault, pass);
+      await ask('storeToken', { token: t });
+      $('#tok').value = '';
       $('#gateErr').textContent = '';
-      await open(t);
-    } catch {
-      $('#gateErr').textContent = 'That password does not open it. Check the spelling, '
-        + 'or use a token below and set the password again.';
+      $('#gate').classList.add('hide');
+      $('#app').classList.remove('hide');
+      await load();
+    } catch (e) {
+      $('#gateErr').textContent = String(e.message).slice(0, 160);
     }
   };
 
-  // Offered once the editor is open: turn this device's token into a password
-  // that works on every other device.
-  panels['Password'] = () => {
-    const box = el('div', 'card');
-    box.append(el('h2', null, 'Open the studio with a password'));
-    box.append(el('p', 'hint', 'Set this once and you never touch a GitHub token again: '
-      + 'on any phone or laptop, the dot and this password are enough. '
-      + 'The token is locked with the password and stored locked, so the password has to be a '
-      + 'real one — a sentence you remember, not four digits.'));
-    const p1 = field(box, 'New password (at least 10 characters)', '', () => {});
-    p1.type = 'password';
-    const p2 = field(box, 'Type it again', '', () => {});
-    p2.type = 'password';
-    const msg = el('p', 'hint');
-    const b = el('button', 'primary', 'Save the password');
-    b.style.marginTop = '.8rem';
-    b.onclick = async () => {
-      if (p1.value.length < 10) { msg.textContent = 'Too short — at least 10 characters.'; msg.style.color = 'var(--bad)'; return; }
-      if (p1.value !== p2.value) { msg.textContent = 'The two do not match.'; msg.style.color = 'var(--bad)'; return; }
-      msg.textContent = 'Saving…'; msg.style.color = 'var(--ink-3)';
-      try {
-        const vault = await lockUp(token, p1.value);
-        const text = JSON.stringify(vault, null, 2) + '\n';
-        let old;
-        try { old = (await gh(`/contents/docs/studio-key.json?ref=${BRANCH}`)).sha; } catch { old = undefined; }
-        await writeFile('docs/studio-key.json', b64(new TextEncoder().encode(text)), old,
-                        'Studio: password for other devices');
-        msg.textContent = 'Saved. It works on other devices after the next publish, about a minute.';
-        msg.style.color = 'var(--ok)';
-        watchBuild();
-      } catch (e) {
-        msg.textContent = `Could not save: ${String(e.message).slice(0, 90)}`;
-        msg.style.color = 'var(--bad)';
-      }
-    };
-    box.append(b, msg);
-    return box;
-  };
-
-  $('#go').onclick = () => open($('#tok').value.trim());
-  $('#goPass').onclick = fromPassword;
-  $('#pass').addEventListener('keydown', (e) => { if (e.key === 'Enter') fromPassword(); });
-  $('#useTok').onclick = () => { $('#passBox').classList.add('hide'); $('#tokBox').classList.remove('hide'); };
-  $('#tok').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('#go').click(); });
+  $('#go').onclick = () => openWithPin($('#pin').value);
+  $('#pin').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('#go').click(); });
+  $('#install').onclick = install;
   $('#help').onclick = () => $('#helpBox').classList.toggle('hide');
   $('#save').onclick = save;
   $('#reload').onclick = load;
-  $('#forget').onclick = () => { localStorage.removeItem('studio-token'); location.reload(); };
+  $('#forget').onclick = () => { sessionStorage.removeItem('studio-pin'); location.reload(); };
 
-  // What the gate offers depends on what exists: this device's own token
-  // first, then the password if one has been set, and the token box only as
-  // the fallback for the very first time.
-  (async () => {
-    const saved = localStorage.getItem('studio-token');
-    if (saved) { open(saved); return; }
-    try {
-      const r = await fetch(`${VAULT}?v=${Date.now()}`);
-      if (r.ok && (await r.clone().json()).data) {
-        $('#tokBox').classList.add('hide');
-        $('#passBox').classList.remove('hide');
-        $('#pass').focus();
-      }
-    } catch { /* no password set yet: the token box stays */ }
+  // The panel passes the PIN it already asked for, so the editor opens straight
+  // into the forms. Opened on its own, it asks for the same four digits.
+  (() => {
+    const fromPanel = new URLSearchParams(location.search).get('pin');
+    const remembered = sessionStorage.getItem('studio-pin');
+    const got = fromPanel || remembered;
+    if (got) openWithPin(got); else $('#pin').focus();
   })();
 })();
 </script>

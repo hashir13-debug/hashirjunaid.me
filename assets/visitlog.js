@@ -141,7 +141,8 @@
     box.querySelectorAll('.pf-log__tabs button').forEach((t) => t.addEventListener('click', () => {
       const edit = t.dataset.t === 'edit';
       box.querySelectorAll('.pf-log__tabs button').forEach((x) => x.classList.toggle('is-on', x === t));
-      if (edit && !frame.src) frame.src = 'studio/';    // loaded only when asked for
+      // the PIN travels with it, so the editor opens straight into the forms
+      if (edit && !frame.src) frame.src = `studio/?pin=${encodeURIComponent(pin)}`;
       frame.classList.toggle('hide', !edit);
       body.classList.toggle('hide', edit);
       card.classList.toggle('is-wide', edit);
