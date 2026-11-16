@@ -164,6 +164,11 @@
     });
     const j = await r.json().catch(() => ({ ok: false, error: 'bad reply' }));
     if (!j.ok) throw new Error(j.error || 'refused');
+    // The previous version of the script answered every request with a bare
+    // {ok:true}. Saying so beats hanging on a reply that will never contain
+    // what the editor needs.
+    const expect = { ping: 'hasToken', read: 'content', write: 'ok', status: 'run', visits: 'rows' }[action];
+    if (expect && !(expect in j)) throw new Error('OLD_SCRIPT');
     return j;
   };
 
@@ -179,6 +184,17 @@
   const writeFile = async (path, contentB64, shaOld, message) => {
     const j = await ask('write', { path, content: contentB64, sha: shaOld, message });
     return { content: { sha: j.sha } };
+  };
+
+  const explain = (e) => {
+    const m = String(e && e.message || e);
+    if (m === 'OLD_SCRIPT') return 'Your Google script is still running the old code. Open Apps Script, '
+      + 'paste the new code, save, then Deploy → Manage deployments → edit → New version → Deploy.';
+    if (m === 'pin') return 'That PIN is not right.';
+    if (m === 'locked') return 'Too many wrong PINs. The desk is closed for an hour.';
+    if (/No GitHub token/i.test(m)) return 'The script has no GitHub token yet. Reload and paste one once.';
+    if (/read but not write/i.test(m)) return m;
+    return `Something went wrong: ${m.slice(0, 120)}`;
   };
 
   /* ------------------------------------------------------------------ ui */
@@ -533,6 +549,23 @@
   /* ---------------------------------------------------------------- boot */
   const load = async () => {
     setStatus('loading', 'work');
+    try { await loadInner(); } catch (e) {
+      setStatus('cannot load', 'bad');
+      $('#panels').textContent = '';
+      const card = el('div', 'card');
+      card.style.cssText = 'border-color:#D6454555';
+      card.append(el('h2', null, 'The editor could not start'));
+      card.append(el('p', 'hint', explain(e)));
+      const again = el('button', 'primary', 'Try again');
+      again.onclick = load;
+      card.append(again);
+      $('#panels').append(card);
+      $('#tabs').textContent = '';
+      $('#state').textContent = explain(e);
+    }
+  };
+
+  const loadInner = async () => {
     const blank = { json: {}, sha: undefined };
     const [p, pr, cp, cv] = await Promise.all([
       readFile(FILES.profile), readFile(FILES.products),
@@ -573,9 +606,7 @@
       await load();
     } catch (e) {
       const m = String(e.message);
-      $('#gateErr').textContent = m === 'locked'
-        ? 'Too many wrong PINs. The desk is closed for an hour.'
-        : m === 'pin' ? 'That PIN is not right.' : `Could not reach the desk: ${m.slice(0, 80)}`;
+      $('#gateErr').textContent = explain(e);
       pin = '';
     }
   };
