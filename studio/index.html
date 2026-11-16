@@ -79,11 +79,21 @@
     <p class="hint">Everything on hashirjunaid.me and axonsystems.tech is edited here &mdash; the words on
       every page, the CV, the certificates and the letters. Saving rebuilds and publishes both sites,
       usually within a minute.</p>
-    <label for="tok">GitHub token</label>
-    <input id="tok" type="password" placeholder="github_pat_..." autocomplete="off">
-    <p class="hint">Kept on this device only, never sent anywhere except GitHub.</p>
-    <p style="margin:.9rem 0 0"><button class="primary" id="go">Open studio</button>
-      <button id="help" type="button">How do I get a token?</button></p>
+    <div id="passBox" class="hide">
+      <label for="pass">Your password</label>
+      <input id="pass" type="password" placeholder="the password you chose" autocomplete="current-password">
+      <p class="hint">Unlocks the editor on this device. Nothing else to enter, ever.</p>
+      <p style="margin:.9rem 0 0"><button class="primary" id="goPass">Open studio</button>
+        <button id="useTok" type="button">Use a token instead</button></p>
+    </div>
+
+    <div id="tokBox">
+      <label for="tok">GitHub token</label>
+      <input id="tok" type="password" placeholder="github_pat_..." autocomplete="off">
+      <p class="hint">Kept on this device only, never sent anywhere except GitHub.</p>
+      <p style="margin:.9rem 0 0"><button class="primary" id="go">Open studio</button>
+        <button id="help" type="button">How do I get a token?</button></p>
+    </div>
     <div id="helpBox" class="hide" style="margin-top:.9rem">
       <ol class="steps">
         <li>On GitHub: <b>Settings → Developer settings → Personal access tokens → Fine-grained tokens</b></li>
@@ -131,7 +141,37 @@
   };
   const CV = 'shared/cv/hashir-junaid-cv.pdf';
 
+  // Where the locked-up token sits once a password has been set. It is part of
+  // the published site, which is why it is encrypted and why the password has
+  // to be a real one rather than four digits.
+  const VAULT = 'studio-key.json';
   const $ = (s) => document.querySelector(s);
+
+  /* --------------------------------------------------- password <-> token */
+  const enc = new TextEncoder(), dec = new TextDecoder();
+  const keyFrom = async (pass, salt) => {
+    const base = await crypto.subtle.importKey('raw', enc.encode(pass), 'PBKDF2', false, ['deriveKey']);
+    return crypto.subtle.deriveKey(
+      { name: 'PBKDF2', salt, iterations: 250000, hash: 'SHA-256' },
+      base, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
+  };
+  const bytesToB64 = (b) => btoa(String.fromCharCode(...b));
+  const b64ToBytes = (s) => Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
+
+  const lockUp = async (secret, pass) => {
+    const salt = crypto.getRandomValues(new Uint8Array(16));
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const key = await keyFrom(pass, salt);
+    const out = new Uint8Array(await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, enc.encode(secret)));
+    return { v: 1, salt: bytesToB64(salt), iv: bytesToB64(iv), data: bytesToB64(out) };
+  };
+
+  const unlock = async (vault, pass) => {
+    const key = await keyFrom(pass, b64ToBytes(vault.salt));
+    const out = await crypto.subtle.decrypt(
+      { name: 'AES-GCM', iv: b64ToBytes(vault.iv) }, key, b64ToBytes(vault.data));
+    return dec.decode(out);
+  };
   const el = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
   let token = '', data = {}, sha = {}, dirty = new Set(), cvFile = null;
   let uploads = [];                     // images picked in the forms, sent on save
@@ -553,15 +593,86 @@
     }
   };
 
+  /* ------------------------------------------- opening with the password */
+  const fromPassword = async () => {
+    const pass = $('#pass').value;
+    if (!pass) return;
+    $('#gateErr').textContent = 'Unlocking…';
+    try {
+      const vault = await (await fetch(`${VAULT}?v=${Date.now()}`)).json();
+      const t = await unlock(vault, pass);
+      $('#gateErr').textContent = '';
+      await open(t);
+    } catch {
+      $('#gateErr').textContent = 'That password does not open it. Check the spelling, '
+        + 'or use a token below and set the password again.';
+    }
+  };
+
+  // Offered once the editor is open: turn this device's token into a password
+  // that works on every other device.
+  panels['Password'] = () => {
+    const box = el('div', 'card');
+    box.append(el('h2', null, 'Open the studio with a password'));
+    box.append(el('p', 'hint', 'Set this once and you never touch a GitHub token again: '
+      + 'on any phone or laptop, the dot and this password are enough. '
+      + 'The token is locked with the password and stored locked, so the password has to be a '
+      + 'real one — a sentence you remember, not four digits.'));
+    const p1 = field(box, 'New password (at least 10 characters)', '', () => {});
+    p1.type = 'password';
+    const p2 = field(box, 'Type it again', '', () => {});
+    p2.type = 'password';
+    const msg = el('p', 'hint');
+    const b = el('button', 'primary', 'Save the password');
+    b.style.marginTop = '.8rem';
+    b.onclick = async () => {
+      if (p1.value.length < 10) { msg.textContent = 'Too short — at least 10 characters.'; msg.style.color = 'var(--bad)'; return; }
+      if (p1.value !== p2.value) { msg.textContent = 'The two do not match.'; msg.style.color = 'var(--bad)'; return; }
+      msg.textContent = 'Saving…'; msg.style.color = 'var(--ink-3)';
+      try {
+        const vault = await lockUp(token, p1.value);
+        const text = JSON.stringify(vault, null, 2) + '\n';
+        let old;
+        try { old = (await gh(`/contents/docs/studio-key.json?ref=${BRANCH}`)).sha; } catch { old = undefined; }
+        await writeFile('docs/studio-key.json', b64(new TextEncoder().encode(text)), old,
+                        'Studio: password for other devices');
+        msg.textContent = 'Saved. It works on other devices after the next publish, about a minute.';
+        msg.style.color = 'var(--ok)';
+        watchBuild();
+      } catch (e) {
+        msg.textContent = `Could not save: ${String(e.message).slice(0, 90)}`;
+        msg.style.color = 'var(--bad)';
+      }
+    };
+    box.append(b, msg);
+    return box;
+  };
+
   $('#go').onclick = () => open($('#tok').value.trim());
+  $('#goPass').onclick = fromPassword;
+  $('#pass').addEventListener('keydown', (e) => { if (e.key === 'Enter') fromPassword(); });
+  $('#useTok').onclick = () => { $('#passBox').classList.add('hide'); $('#tokBox').classList.remove('hide'); };
   $('#tok').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('#go').click(); });
   $('#help').onclick = () => $('#helpBox').classList.toggle('hide');
   $('#save').onclick = save;
   $('#reload').onclick = load;
   $('#forget').onclick = () => { localStorage.removeItem('studio-token'); location.reload(); };
 
-  const saved = localStorage.getItem('studio-token');
-  if (saved) open(saved);
+  // What the gate offers depends on what exists: this device's own token
+  // first, then the password if one has been set, and the token box only as
+  // the fallback for the very first time.
+  (async () => {
+    const saved = localStorage.getItem('studio-token');
+    if (saved) { open(saved); return; }
+    try {
+      const r = await fetch(`${VAULT}?v=${Date.now()}`);
+      if (r.ok && (await r.clone().json()).data) {
+        $('#tokBox').classList.add('hide');
+        $('#passBox').classList.remove('hide');
+        $('#pass').focus();
+      }
+    } catch { /* no password set yet: the token box stays */ }
+  })();
 })();
 </script>
 </body>
