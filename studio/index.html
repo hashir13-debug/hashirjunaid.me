@@ -194,11 +194,30 @@
     if (m === 'locked') return 'Too many wrong PINs. The desk is closed for an hour.';
     if (/No GitHub token/i.test(m)) return 'The script has no GitHub token yet. Reload and paste one once.';
     if (/read but not write/i.test(m)) return m;
+    if (/failed to fetch|networkerror|load failed/i.test(m))
+      return 'No answer from the desk. Check the connection and press Save again - nothing has been lost.';
+    if (/^40[34]$|not found/i.test(m)) return 'That file is not in the repository any more.';
     return `Something went wrong: ${m.slice(0, 120)}`;
   };
 
   /* ------------------------------------------------------------------ ui */
-  const mark = (key) => { dirty.add(key); $('#save').disabled = false; $('#state').textContent = `${dirty.size} change${dirty.size > 1 ? 's' : ''} waiting`; };
+  const tellPanel = () => {
+    try { parent.postMessage({ studio: 'dirty', count: dirty.size }, location.origin); } catch { /* standalone */ }
+  };
+
+  const mark = (key) => {
+    dirty.add(key);
+    $('#save').disabled = false;
+    $('#state').textContent = `${dirty.size} change${dirty.size > 1 ? 's' : ''} waiting`;
+    tellPanel();
+  };
+
+  // An unsaved edit should never disappear because a tab was closed.
+  addEventListener('beforeunload', (e) => {
+    if (!dirty.size && !cvFile && !uploads.length) return;
+    e.preventDefault();
+    e.returnValue = '';
+  });
 
   const field = (parent, label, value, onInput, long) => {
     parent.append(el('label', null, label));
@@ -455,6 +474,67 @@
     return box;
   };
 
+  // Pictures: the portrait and any product screenshot. One upload becomes both
+  // the full image and the thumbnail the cards use, converted to webp here so
+  // nothing has to be processed afterwards.
+  const toWebp = (file, maxW) => new Promise((done, fail) => {
+    const img = new Image();
+    img.onload = () => {
+      const scale = Math.min(1, maxW / img.naturalWidth);
+      const c = document.createElement('canvas');
+      c.width = Math.round(img.naturalWidth * scale);
+      c.height = Math.round(img.naturalHeight * scale);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      c.toBlob((b) => (b ? done(b) : fail(new Error('could not convert'))), 'image/webp', 0.86);
+    };
+    img.onerror = () => fail(new Error('not an image this browser can read'));
+    img.src = URL.createObjectURL(file);
+  });
+
+  panels['Pictures'] = () => {
+    const box = el('div', 'card');
+    box.append(el('h2', null, 'Portrait and screenshots'));
+    box.append(el('p', 'hint', 'Pick a new picture and it replaces the old one in place — both the large '
+      + 'version and the small one on the cards. PNG or JPG is fine; it is converted for you.'));
+
+    const pick = (label, paths, maxW, thumbW) => {
+      const row = el('div', 'item');
+      row.append(el('h3', null, label));
+      const inp = document.createElement('input');
+      inp.type = 'file';
+      inp.accept = 'image/*';
+      const note = el('p', 'hint', paths[0]);
+      inp.addEventListener('change', async () => {
+        const f = inp.files[0];
+        if (!f) return;
+        note.textContent = 'Preparing…';
+        try {
+          const big = await toWebp(f, maxW);
+          uploads.push({ path: paths[0], file: big });
+          if (paths[1]) uploads.push({ path: paths[1], file: await toWebp(f, thumbW) });
+          note.textContent = `Ready: ${f.name} → ${paths.length} file(s), ${Math.round(big.size / 1024)} KB`;
+          mark('uploads');
+        } catch (e) {
+          note.textContent = String(e.message);
+        }
+      });
+      row.append(inp, note);
+      box.append(row);
+    };
+
+    pick('Your portrait', ['shared/profile/avatar.webp'], 960, 0);
+    (data.products.products || []).forEach((pr) => {
+      const shots = [...new Set([pr.lead, ...(pr.shots || [])])].filter(Boolean);
+      shots.forEach((shot) => {
+        const name = String(shot).replace(/\.[a-z0-9]+$/i, '');
+        pick(`${pr.name} · ${name}`,
+             [`shared/creatives/web/${pr.slug}/${name}.webp`,
+              `shared/creatives/web/${pr.slug}/${name}@thumb.webp`], 1600, 640);
+      });
+    });
+    return box;
+  };
+
   panels['Advanced'] = () => {
     const box = el('div', 'card');
     box.append(el('h2', null, 'Raw content files'));
@@ -518,6 +598,7 @@
         const res = await writeFile(FILES[key], b64(bytes), sha[key], `Studio: update ${key}`);
         sha[key] = res.content.sha;
       }
+      if (uploads.length) $('#state').textContent = `Uploading ${uploads.length} file(s)…`;
       for (const up of uploads) {
         const buf = new Uint8Array(await up.file.arrayBuffer());
         let old;
@@ -532,6 +613,7 @@
         cvFile = null;
       }
       dirty.clear();
+      tellPanel();
       $('#state').textContent = 'Saved. Building…';
       watchBuild();
     } catch (e) {

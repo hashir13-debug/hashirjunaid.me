@@ -663,6 +663,20 @@ button.pf-letter:hover { transform: translateY(-3px); border-color: var(--pf-ora
 }
 [data-brand="portfolio"] :is(a, button):focus:not(:focus-visible) { outline: none; }
 
+@media print {
+  .pf-road, .pf-nav, .pf-foot__top-btn, .pf-dot, .pf-log, .pf-box,
+  [data-stars], .pf-beam { display: none !important; }
+  html, body { background: #fff !important; color: #000 !important; }
+  .pf-foot { margin-bottom: 0 !important; padding-bottom: 1rem !important; }
+  main, section, .pf-wrap { padding-top: 0 !important; }
+  section { break-inside: avoid; page-break-inside: avoid; }
+  h1, h2, h3 { break-after: avoid; page-break-after: avoid; }
+  a { text-decoration: underline; color: #000 !important; }
+  
+  .pf-prose a[href^="http"]::after, .pf-feature a[href^="http"]::after { content: " (" attr(href) ")"; font-size: .8em; }
+  [data-r] { opacity: 1 !important; transform: none !important; }
+}
+
 .pf-dot {
   appearance: none; background: none; border: 0; padding: 0 0 0 .35rem; margin: 0;
   font: inherit; color: inherit; opacity: .45; cursor: default; line-height: 1;
@@ -716,3 +730,10 @@ button.pf-letter:hover { transform: translateY(-3px); border-color: var(--pf-ora
 }
 .pf-log__err { font-family: var(--pf-mono); font-size: .7rem; letter-spacing: .1em; text-transform: uppercase; color: #FFB4A2; }
 @media (max-width: 720px) { .pf-log__table { font-size: .74rem; } .pf-log__table td { padding: .4rem .35rem; } }
+
+@media (max-width: 560px) {
+  .pf-certstrip {
+    -webkit-mask-image: linear-gradient(90deg, #000 88%, transparent);
+    mask-image: linear-gradient(90deg, #000 88%, transparent);
+  }
+}

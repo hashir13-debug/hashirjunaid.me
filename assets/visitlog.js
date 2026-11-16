@@ -148,7 +148,16 @@
       card.classList.toggle('is-wide', edit);
       if (sheet) sheet.classList.toggle('hide', edit);
     }));
-    const close = () => box.remove();
+    // The editor tells the panel when it is holding unsaved work, so closing
+    // the panel asks first instead of quietly throwing the edit away.
+    let unsaved = 0;
+    addEventListener('message', (e) => {
+      if (e.origin === location.origin && e.data && e.data.studio === 'dirty') unsaved = e.data.count || 0;
+    });
+    const close = () => {
+      if (unsaved && !confirm(`${unsaved} unsaved change${unsaved > 1 ? 's' : ''} will be lost. Close anyway?`)) return;
+      box.remove();
+    };
     box.querySelector('.pf-log__x').onclick = close;
     box.onclick = (e) => { if (e.target === box) close(); };
 
