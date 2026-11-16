@@ -174,7 +174,11 @@
   if (openers.length) {
     const box = document.createElement('div');
     box.className = 'pf-box';
-    box.innerHTML = '<button class="pf-box__x" aria-label="Close">&times;</button><img alt=""><p class="pf-box__c"></p>';
+    // a transparent pixel until a screenshot is actually opened: an <img> with
+    // no src counts as a broken image
+    box.innerHTML = '<button class="pf-box__x" aria-label="Close">&times;</button>'
+      + '<img alt="" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==">'
+      + '<p class="pf-box__c"></p>';
     document.body.append(box);
     const img = box.querySelector('img'), cap = box.querySelector('.pf-box__c');
     const shut = () => { box.classList.remove('is-open'); document.body.style.overflow = ''; };

@@ -76,8 +76,9 @@
 <div id="gate" class="gate wrap">
   <div class="card">
     <h2>Portfolio studio</h2>
-    <p class="hint">Everything on hashirjunaid.me and axonsystems.tech is edited here. Changes are saved to
-      the private source repository and both sites rebuild themselves, usually within a minute.</p>
+    <p class="hint">Everything on hashirjunaid.me and axonsystems.tech is edited here &mdash; the words on
+      every page, the CV, the certificates and the letters. Saving rebuilds and publishes both sites,
+      usually within a minute.</p>
     <label for="tok">GitHub token</label>
     <input id="tok" type="password" placeholder="github_pat_..." autocomplete="off">
     <p class="hint">Kept on this device only, never sent anywhere except GitHub.</p>
@@ -126,6 +127,7 @@
     profile: 'docs/content/profile.json',
     products: 'docs/content/products.json',
     copy: 'docs/content/site.json',
+    cv: 'docs/content/cv.json',
   };
   const CV = 'shared/cv/hashir-junaid-cv.pdf';
 
@@ -247,7 +249,9 @@
     Object.keys(data.copy || {}).forEach((k) => { (groups[k.split('.')[0]] ||= []).push(k); });
     const label = { axon: 'Axon Systems site', me: 'Your hero', internship: 'Systems Limited',
                     company: 'Axon section', projects: 'Projects section', contact: 'Contact',
-                    notFound: 'The 404 page' };
+                    notFound: 'The 404 page', btn: 'Buttons', head: 'Section headings',
+                    link: 'Links', cta: 'Call to action', stat: 'The three numbers',
+                    seo: 'What Google and LinkedIn show' };
     Object.entries(groups).forEach(([g, keys]) => {
       const it = el('div', 'item');
       it.append(el('h3', null, label[g] || g));
@@ -353,10 +357,47 @@
     return box;
   };
 
-  panels['CV'] = () => {
+  panels['CV text'] = () => {
     const box = el('div', 'card');
-    box.append(el('h2', null, 'The CV people download'));
-    box.append(el('p', 'hint', 'Upload a PDF to replace it. It goes live with the next publish.'));
+    box.append(el('h2', null, 'What the CV says'));
+    box.append(el('p', 'hint', 'The PDF is rebuilt from this on every publish, so the CV and the site '
+      + 'can never drift apart. Education, skills and certificates come from the other tabs.'));
+    const cv = data.cv || { experience: [], projects: [] };
+    (cv.experience || []).forEach((j) => {
+      const it = el('div', 'item');
+      it.append(el('h3', null, `${j.role} · ${j.org}`));
+      const row = el('div', 'row');
+      field(row, 'Role', j.role, (v) => { j.role = v; mark('cv'); });
+      field(row, 'Organisation', j.org, (v) => { j.org = v; mark('cv'); });
+      it.append(row);
+      const row2 = el('div', 'row');
+      field(row2, 'When', j.when, (v) => { j.when = v; mark('cv'); });
+      field(row2, 'Where', j.where, (v) => { j.where = v; mark('cv'); });
+      it.append(row2);
+      lines(it, 'Bullets', j.bullets, (v) => { j.bullets = v; mark('cv'); });
+      box.append(it);
+    });
+    const h = el('h2', null, 'Projects on the CV');
+    h.style.marginTop = '1.4rem';
+    box.append(h);
+    (cv.projects || []).forEach((pj) => {
+      const it = el('div', 'item');
+      it.append(el('h3', null, pj.name));
+      const row = el('div', 'row');
+      field(row, 'Name', pj.name, (v) => { pj.name = v; mark('cv'); });
+      field(row, 'Stack', pj.stack, (v) => { pj.stack = v; mark('cv'); });
+      it.append(row);
+      lines(it, 'Bullets', pj.bullets, (v) => { pj.bullets = v; mark('cv'); });
+      box.append(it);
+    });
+    return box;
+  };
+
+  panels['CV file'] = () => {
+    const box = el('div', 'card');
+    box.append(el('h2', null, 'Replace the PDF by hand'));
+    box.append(el('p', 'hint', 'Only needed if you want a PDF of your own instead of the generated one. '
+      + 'Note that the next change to the CV text will overwrite it.'));
     const inp = document.createElement('input');
     inp.type = 'file'; inp.accept = 'application/pdf';
     inp.style.marginTop = '.7rem';
@@ -380,7 +421,7 @@
     const box = el('div', 'card');
     box.append(el('h2', null, 'Raw content files'));
     box.append(el('p', 'hint', 'Everything the forms above do not cover. Invalid JSON will not save.'));
-    ['profile', 'products', 'copy'].forEach((key) => {
+    ['profile', 'products', 'copy', 'cv'].forEach((key) => {
       box.append(el('label', null, FILES[key]));
       const t = el('textarea');
       t.style.minHeight = '240px';
@@ -431,7 +472,7 @@
     $('#save').disabled = true;
     setStatus('saving', 'work');
     try {
-      for (const key of ['profile', 'products', 'copy']) {
+      for (const key of ['profile', 'products', 'copy', 'cv']) {
         if (!dirty.has(key)) continue;
         const text = JSON.stringify(data[key], null, 2) + '\n';
         const bytes = new TextEncoder().encode(text);
@@ -456,7 +497,12 @@
       watchBuild();
     } catch (e) {
       setStatus('save failed', 'bad');
-      $('#state').textContent = String(e.message).slice(0, 140);
+      const m = String(e.message);
+      $('#state').textContent = /^40[34]/.test(m)
+        ? 'GitHub refused the save: the token is missing Contents: Read and write.'
+        : /^409/.test(m)
+          ? 'Someone (or a build) changed the file meanwhile. Press Reload, then make the change again.'
+          : m.slice(0, 160);
       $('#save').disabled = false;
     }
   };
@@ -464,12 +510,15 @@
   /* ---------------------------------------------------------------- boot */
   const load = async () => {
     setStatus('loading', 'work');
-    const [p, pr, cp] = await Promise.all([
-      readFile(FILES.profile), readFile(FILES.products), readFile(FILES.copy).catch(() => ({ json: {}, sha: undefined })),
+    const blank = { json: {}, sha: undefined };
+    const [p, pr, cp, cv] = await Promise.all([
+      readFile(FILES.profile), readFile(FILES.products),
+      readFile(FILES.copy).catch(() => blank), readFile(FILES.cv).catch(() => blank),
     ]);
     data.profile = p.json; sha.profile = p.sha;
     data.products = pr.json; sha.products = pr.sha;
     data.copy = cp.json; sha.copy = cp.sha;
+    data.cv = cv.json; sha.cv = cv.sha;
     dirty.clear(); cvFile = null; uploads = [];
     $('#save').disabled = true;
     $('#state').textContent = 'No changes yet';
@@ -484,7 +533,16 @@
   const open = async (t) => {
     token = t;
     try {
-      await gh('');                                  // does the token actually work?
+      const repo = await gh('');                     // does the token actually work?
+      // A token that can only read looks fine until the first save fails, so
+      // say it here instead.
+      if (repo && repo.permissions && repo.permissions.push === false) {
+        $('#gateErr').innerHTML = 'This token can <b>read</b> the repository but not <b>write</b> to it, '
+          + 'so nothing could be saved. On GitHub, edit the token and set <b>Repository permissions → '
+          + 'Contents: Read and write</b>, then paste it again.';
+        token = '';
+        return;
+      }
       localStorage.setItem('studio-token', t);
       $('#gate').classList.add('hide');
       $('#app').classList.remove('hide');
