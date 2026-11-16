@@ -88,6 +88,9 @@
     </div>
 
     <div id="tokBox">
+      <p class="hint" style="background:#FFF4EC;border:1px solid #F2670E33;border-radius:10px;padding:.6rem .7rem">
+        <b>First time only.</b> Paste the token once, and the next screen offers to set a password.
+        After that this box never appears again &mdash; on any phone or laptop, the password is enough.</p>
       <label for="tok">GitHub token</label>
       <input id="tok" type="password" placeholder="github_pat_..." autocomplete="off">
       <p class="hint">Kept on this device only, never sent anywhere except GitHub.</p>
@@ -566,7 +569,19 @@
     const tabs = $('#tabs');
     tabs.textContent = '';
     names.forEach((n) => { const b = el('button', null, n); b.onclick = () => show(n); tabs.append(b); });
-    show(names[0]);
+
+    // No password set yet? Start on that tab rather than leaving him to find
+    // it: it is the one thing that stops the token coming back.
+    let vaultExists = false;
+    try { vaultExists = !!(await (await fetch(`${VAULT}?v=${Date.now()}`)).json()).data; } catch { /* none */ }
+    show(vaultExists ? names[0] : 'Password');
+    if (!vaultExists) {
+      const tip = el('div', 'card');
+      tip.style.cssText = 'background:#FFF4EC;border-color:#F2670E44';
+      tip.innerHTML = '<b>One thing left.</b> Set a password below and you will never be asked for '
+        + 'a GitHub token again, on this or any other device.';
+      $('#panels').prepend(tip);
+    }
     setStatus('ready', 'ok');
   };
 
