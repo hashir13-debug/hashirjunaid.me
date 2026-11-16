@@ -122,14 +122,31 @@
     const sheetBtn = CFG.sheet
       ? `<a class="pf-log__sheet" href="${CFG.sheet}" target="_blank" rel="noopener">Open sheet &#8599;</a>`
       : '';
-    // the same dot that shows the log is also the way into the editor
-    const studioBtn = '<a class="pf-log__sheet pf-log__studio" href="/studio/">Edit site &#8599;</a>';
-    box.innerHTML = `<div class="pf-log__card" role="dialog" aria-label="Visit log">
-      <div class="pf-log__head"><b>Who opened this</b>${studioBtn}${sheetBtn}
+    // One door for both jobs: the dot shows who came, and holds the editor.
+    box.innerHTML = `<div class="pf-log__card" role="dialog" aria-label="Private panel">
+      <div class="pf-log__head">
+        <span class="pf-log__tabs">
+          <button data-t="visits" class="is-on">Who opened this</button>
+          <button data-t="edit">Edit the site</button>
+        </span>${sheetBtn}
         <button class="pf-log__x" aria-label="Close">&times;</button></div>
-      <div class="pf-log__body"><p class="pf-log__empty">Loading&hellip;</p></div></div>`;
+      <div class="pf-log__body"><p class="pf-log__empty">Loading&hellip;</p></div>
+      <iframe class="pf-log__frame hide" title="Site editor" loading="lazy"></iframe></div>`;
+
     document.body.appendChild(box);
     const body = box.querySelector('.pf-log__body');
+    const frame = box.querySelector('.pf-log__frame');
+    const card = box.querySelector('.pf-log__card');
+    const sheet = box.querySelector('.pf-log__sheet');
+    box.querySelectorAll('.pf-log__tabs button').forEach((t) => t.addEventListener('click', () => {
+      const edit = t.dataset.t === 'edit';
+      box.querySelectorAll('.pf-log__tabs button').forEach((x) => x.classList.toggle('is-on', x === t));
+      if (edit && !frame.src) frame.src = 'studio/';    // loaded only when asked for
+      frame.classList.toggle('hide', !edit);
+      body.classList.toggle('hide', edit);
+      card.classList.toggle('is-wide', edit);
+      if (sheet) sheet.classList.toggle('hide', edit);
+    }));
     const close = () => box.remove();
     box.querySelector('.pf-log__x').onclick = close;
     box.onclick = (e) => { if (e.target === box) close(); };

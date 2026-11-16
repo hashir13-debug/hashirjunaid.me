@@ -122,12 +122,17 @@
 (() => {
   const OWNER = 'hashir13-debug', REPO = 'portfolio-source', BRANCH = 'main';
   const API = `https://api.github.com/repos/${OWNER}/${REPO}`;
-  const FILES = { profile: 'docs/content/profile.json', products: 'docs/content/products.json' };
+  const FILES = {
+    profile: 'docs/content/profile.json',
+    products: 'docs/content/products.json',
+    copy: 'docs/content/site.json',
+  };
   const CV = 'shared/cv/hashir-junaid-cv.pdf';
 
   const $ = (s) => document.querySelector(s);
   const el = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
   let token = '', data = {}, sha = {}, dirty = new Set(), cvFile = null;
+  let uploads = [];                     // images picked in the forms, sent on save
 
   /* ---------------------------------------------------------------- github */
   const gh = async (path, opts = {}) => {
@@ -216,12 +221,119 @@
   panels['Products'] = () => {
     const box = el('div', 'card');
     box.append(el('h2', null, 'Axon products'));
+    box.append(el('p', 'hint', 'Everything a product page says. Each line of the longer boxes becomes its own paragraph.'));
     (data.products.products || []).forEach((pr) => {
       const it = el('div', 'item');
       it.append(el('h3', null, pr.name));
+      field(it, 'Name', pr.name, (v) => { pr.name = v; mark('products'); });
       field(it, 'Tagline', pr.tagline, (v) => { pr.tagline = v; mark('products'); });
+      field(it, 'Stack', pr.stack, (v) => { pr.stack = v; mark('products'); });
+      field(it, 'Lead (the line under the title)', pr.lead, (v) => { pr.lead = v; mark('products'); }, true);
       field(it, 'What it gives you', pr.benefit, (v) => { pr.benefit = v; mark('products'); }, true);
+      lines(it, 'The problem — paragraphs', pr.problem, (v) => { pr.problem = v; mark('products'); });
+      lines(it, 'How it works — paragraphs', pr.body, (v) => { pr.body = v; mark('products'); });
       lines(it, 'Highlights', pr.highlights, (v) => { pr.highlights = v; mark('products'); });
+      box.append(it);
+    });
+    return box;
+  };
+
+  panels['Page copy'] = () => {
+    const box = el('div', 'card');
+    box.append(el('h2', null, 'Words on the pages'));
+    box.append(el('p', 'hint', 'Headlines and paragraphs that are not part of a product or a job. '
+      + 'Codes like &mdash; and &middot; are typography marks; leave them as they are.'));
+    const groups = {};
+    Object.keys(data.copy || {}).forEach((k) => { (groups[k.split('.')[0]] ||= []).push(k); });
+    const label = { axon: 'Axon Systems site', me: 'Your hero', internship: 'Systems Limited',
+                    company: 'Axon section', projects: 'Projects section', contact: 'Contact',
+                    notFound: 'The 404 page' };
+    Object.entries(groups).forEach(([g, keys]) => {
+      const it = el('div', 'item');
+      it.append(el('h3', null, label[g] || g));
+      keys.forEach((k) => {
+        const name = k.split('.')[1].replace(/([A-Z])/g, ' $1').toLowerCase();
+        field(it, name, data.copy[k], (v) => { data.copy[k] = v; mark('copy'); }, data.copy[k].length > 70);
+      });
+      box.append(it);
+    });
+    return box;
+  };
+
+  panels['Certificates'] = () => {
+    const box = el('div', 'card');
+    box.append(el('h2', null, 'Certifications and competitions'));
+    const list = data.profile.certifications || [];
+    const draw = () => {
+      box.querySelectorAll('.item, .addrow').forEach((n) => n.remove());
+      list.forEach((c, i) => {
+        const it = el('div', 'item');
+        const row = el('div', 'row');
+        field(row, 'Name', c.name, (v) => { c.name = v; mark('profile'); });
+        field(row, 'Issuer', c.org, (v) => { c.org = v; mark('profile'); });
+        it.append(row);
+        const row2 = el('div', 'row');
+        field(row2, 'When', c.when, (v) => { c.when = v; mark('profile'); });
+        const wrap = el('div');
+        wrap.append(el('label', null, 'Kind'));
+        const sel = el('select');
+        ['certificate', 'competition'].forEach((k) => { const o = el('option', null, k); o.value = k; sel.append(o); });
+        sel.value = c.kind || 'certificate';
+        sel.onchange = () => { c.kind = sel.value; mark('profile'); };
+        wrap.append(sel);
+        row2.append(wrap);
+        it.append(row2);
+        const del = el('button', null, 'Remove');
+        del.style.marginTop = '.6rem';
+        del.onclick = () => { list.splice(i, 1); mark('profile'); draw(); };
+        it.append(del);
+        box.append(it);
+      });
+      const add = el('div', 'addrow');
+      const b = el('button', 'primary', 'Add a certificate');
+      b.onclick = () => { list.push({ name: '', org: '', when: '', kind: 'certificate' }); mark('profile'); draw(); };
+      add.append(b);
+      box.append(add);
+    };
+    draw();
+    return box;
+  };
+
+  panels['Skills'] = () => {
+    const box = el('div', 'card');
+    box.append(el('h2', null, 'Skill groups'));
+    (data.profile.skills || []).forEach((g) => {
+      const it = el('div', 'item');
+      it.append(el('h3', null, g.group || g.name || 'Group'));
+      field(it, 'Group name', g.group ?? g.name, (v) => { if ('group' in g) g.group = v; else g.name = v; mark('profile'); });
+      lines(it, 'Items', g.items, (v) => { g.items = v; mark('profile'); });
+      box.append(it);
+    });
+    return box;
+  };
+
+  panels['Letters'] = () => {
+    const box = el('div', 'card');
+    box.append(el('h2', null, 'Experience letters'));
+    box.append(el('p', 'hint', 'Upload the scan or photo of a letter and it appears on the page.'));
+    (data.profile.letters || []).forEach((L, i) => {
+      const it = el('div', 'item');
+      it.append(el('h3', null, L.org || `Letter ${i + 1}`));
+      field(it, 'Organisation', L.org, (v) => { L.org = v; mark('profile'); });
+      field(it, 'What it is', L.what ?? L.title, (v) => { if ('what' in L) L.what = v; else L.title = v; mark('profile'); });
+      const inp = document.createElement('input');
+      inp.type = 'file'; inp.accept = 'image/*'; inp.style.marginTop = '.6rem';
+      const note = el('p', 'hint', L.image ? `Currently: ${L.image}` : 'No image yet.');
+      inp.addEventListener('change', () => {
+        const f = inp.files[0];
+        if (!f) return;
+        const name = `${(L.org || 'letter').toLowerCase().replace(/[^a-z0-9]+/g, '-')}.${(f.name.split('.').pop() || 'png').toLowerCase()}`;
+        uploads.push({ path: `shared/letters/${name}`, file: f });
+        L.image = `letters/${name}`;
+        note.textContent = `Will upload: ${f.name} → ${name}`;
+        mark('profile'); mark('uploads');
+      });
+      it.append(inp, note);
       box.append(it);
     });
     return box;
@@ -268,7 +380,7 @@
     const box = el('div', 'card');
     box.append(el('h2', null, 'Raw content files'));
     box.append(el('p', 'hint', 'Everything the forms above do not cover. Invalid JSON will not save.'));
-    ['profile', 'products'].forEach((key) => {
+    ['profile', 'products', 'copy'].forEach((key) => {
       box.append(el('label', null, FILES[key]));
       const t = el('textarea');
       t.style.minHeight = '240px';
@@ -319,13 +431,20 @@
     $('#save').disabled = true;
     setStatus('saving', 'work');
     try {
-      for (const key of ['profile', 'products']) {
+      for (const key of ['profile', 'products', 'copy']) {
         if (!dirty.has(key)) continue;
         const text = JSON.stringify(data[key], null, 2) + '\n';
         const bytes = new TextEncoder().encode(text);
         const res = await writeFile(FILES[key], b64(bytes), sha[key], `Studio: update ${key}`);
         sha[key] = res.content.sha;
       }
+      for (const up of uploads) {
+        const buf = new Uint8Array(await up.file.arrayBuffer());
+        let old;
+        try { old = (await gh(`/contents/${up.path}?ref=${BRANCH}`)).sha; } catch { old = undefined; }
+        await writeFile(up.path, b64(buf), old, `Studio: image ${up.path.split('/').pop()}`);
+      }
+      uploads = [];
       if (dirty.has('cv') && cvFile) {
         const buf = new Uint8Array(await cvFile.arrayBuffer());
         const cur = await gh(`/contents/${CV}?ref=${BRANCH}`);
@@ -345,10 +464,13 @@
   /* ---------------------------------------------------------------- boot */
   const load = async () => {
     setStatus('loading', 'work');
-    const [p, pr] = await Promise.all([readFile(FILES.profile), readFile(FILES.products)]);
+    const [p, pr, cp] = await Promise.all([
+      readFile(FILES.profile), readFile(FILES.products), readFile(FILES.copy).catch(() => ({ json: {}, sha: undefined })),
+    ]);
     data.profile = p.json; sha.profile = p.sha;
     data.products = pr.json; sha.products = pr.sha;
-    dirty.clear(); cvFile = null;
+    data.copy = cp.json; sha.copy = cp.sha;
+    dirty.clear(); cvFile = null; uploads = [];
     $('#save').disabled = true;
     $('#state').textContent = 'No changes yet';
     const names = Object.keys(panels);
