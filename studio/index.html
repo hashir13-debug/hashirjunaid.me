@@ -384,6 +384,92 @@
     return box;
   };
 
+  panels['About text'] = () => {
+    const box = el('div', 'card');
+    box.append(el('h2', null, 'The paragraphs about you'));
+    box.append(el('p', 'hint', 'What the Background section says, in your own words. One paragraph per box.'));
+    const host = el('div');
+    box.append(host);
+    const draw = () => {
+      host.textContent = '';
+      (data.profile.about ||= []).forEach((text, i) => {
+        const it = el('div', 'item');
+        const bar = el('div', 'itembar');
+        bar.append(el('span', 'itemname', `Paragraph ${i + 1}`));
+        const tools = el('span', 'tools');
+        const rm = el('button', 'danger', '✕');
+        rm.type = 'button';
+        rm.setAttribute('aria-label', 'Remove this paragraph');
+        rm.onclick = () => { data.profile.about.splice(i, 1); mark('profile'); draw(); };
+        tools.append(rm);
+        bar.append(tools);
+        it.append(bar);
+        const fields = el('div', 'itemfields');
+        const t = el('textarea');
+        t.value = text;
+        t.style.minHeight = '120px';
+        t.addEventListener('input', () => { data.profile.about[i] = t.value; mark('profile'); });
+        fields.append(t);
+        it.append(fields);
+        host.append(it);
+      });
+      const add = el('button', 'primary', 'Add a paragraph');
+      add.type = 'button';
+      add.onclick = () => { data.profile.about.push(''); mark('profile'); draw(); };
+      host.append(add);
+    };
+    draw();
+    return box;
+  };
+
+  panels['Numbers'] = () => {
+    const box = el('div', 'card');
+    listEditor(box, {
+      items: (data.profile.stats ||= []),
+      key: 'profile',
+      title: 'The counters in the hero',
+      hint: 'The small numbers under your name. Keep them true - they are easy to check.',
+      addLabel: 'Add a number',
+      blank: () => ({ value: 0, label: '' }),
+      head: (st) => `${st.value} ${st.label}`,
+      body: (card, st) => {
+        const row = el('div', 'row');
+        const n = field(row, 'Number', st.value, (v) => { st.value = Number(v) || 0; mark('profile'); });
+        n.type = 'number';
+        field(row, 'What it counts', st.label, (v) => { st.label = v; mark('profile'); });
+        card.append(row);
+      },
+    });
+
+    const box2 = el('div', 'card');
+    listEditor(box2, {
+      items: (data.profile.languages ||= []),
+      key: 'profile',
+      title: 'Languages',
+      addLabel: 'Add a language',
+      blank: () => ({ name: '', level: '' }),
+      head: (l) => l.name,
+      summary: (l) => l.level,
+      body: (card, l) => {
+        const row = el('div', 'row');
+        field(row, 'Language', l.name, (v) => { l.name = v; mark('profile'); });
+        field(row, 'Level', l.level, (v) => { l.level = v; mark('profile'); });
+        card.append(row);
+      },
+    });
+
+    const box3 = el('div', 'card');
+    box3.append(el('h2', null, 'Who issued your certificates'));
+    box3.append(el('p', 'hint', 'The row of names under the certificates. One per line.'));
+    lines(box3, 'Issuers', data.profile.credentialBrands, (v) => {
+      data.profile.credentialBrands = v; mark('profile');
+    });
+
+    const wrap = el('div');
+    wrap.append(box, box2, box3);
+    return wrap;
+  };
+
   panels['Experience'] = () => {
     const box = el('div', 'card');
     listEditor(box, {
@@ -544,35 +630,46 @@
       items: (data.profile.letters ||= []),
       key: 'profile',
       title: 'Experience letters',
-      hint: 'Upload the scan or the photo and it appears on the page.',
+      hint: 'A letter shows as a placeholder until its picture is added; after that the picture itself '
+          + 'appears and opens full size when clicked.',
       addLabel: 'Add a letter',
-      blank: () => ({ org: '', what: '', image: null }),
-      head: (L) => L.org,
-      summary: (L) => (L.image ? 'image added' : 'no image yet'),
-      body: (card, L) => {
+      blank: () => ({ name: '', org: '', when: '', image: null }),
+      head: (L) => L.name || L.org || '',
+      summary: (L) => [L.org, L.when, L.image ? 'picture added' : 'no picture yet'].filter(Boolean).join(' · '),
+      body: (card, L, redraw) => {
         const row = el('div', 'row');
+        field(row, 'What it is', L.name, (v) => { L.name = v; mark('profile'); });
         field(row, 'Organisation', L.org, (v) => { L.org = v; mark('profile'); });
-        field(row, 'What it is', L.what ?? L.title, (v) => {
-          if ('title' in L && !('what' in L)) L.title = v; else L.what = v;
-          mark('profile');
-        });
         card.append(row);
+        field(card, 'When', L.when, (v) => { L.when = v; mark('profile'); });
+
         const inp = document.createElement('input');
         inp.type = 'file'; inp.accept = 'image/*'; inp.style.marginTop = '.6rem';
-        const note = el('p', 'hint', L.image ? `Currently: ${L.image}` : 'No image yet.');
+        const note = el('p', 'hint', L.image ? `Picture: ${L.image}.webp` : 'No picture yet.');
         inp.addEventListener('change', async () => {
           const f = inp.files[0];
           if (!f) return;
-          const base = (L.org || 'letter').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+          // the page asks for <name>.webp and <name>@thumb.webp, so both are made here
+          const base = (L.org || L.name || 'letter').toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+          note.textContent = 'Preparing…';
           try {
-            const webp = await toWebp(f, 1400);
-            uploads.push({ path: `shared/letters/${base}.webp`, file: webp });
-            L.image = `letters/${base}.webp`;
-            note.textContent = `Ready: ${f.name} \u2192 ${base}.webp (${Math.round(webp.size / 1024)} KB)`;
+            uploads.push({ path: `shared/letters/${base}.webp`, file: await toWebp(f, 1400) });
+            uploads.push({ path: `shared/letters/${base}@thumb.webp`, file: await toWebp(f, 560) });
+            L.image = base;
+            note.textContent = `Ready: ${f.name} → ${base}.webp`;
             mark('profile'); mark('uploads');
           } catch (e) { note.textContent = String(e.message); }
         });
         card.append(inp, note);
+
+        if (L.image) {
+          const rm = el('button', 'danger', 'Remove the picture');
+          rm.type = 'button';
+          rm.style.marginTop = '.5rem';
+          rm.onclick = () => { L.image = null; mark('profile'); redraw(); };
+          card.append(rm);
+        }
       },
     });
     return box;
@@ -684,16 +781,15 @@
   panels['Pictures'] = () => {
     const box = el('div', 'card');
     box.append(el('h2', null, 'Portrait and screenshots'));
-    box.append(el('p', 'hint', 'Pick a new picture and it replaces the old one in place — both the large '
-      + 'version and the small one on the cards. PNG or JPG is fine; it is converted for you.'));
+    box.append(el('p', 'hint', 'Pick a picture and it goes in place — the large version and the small one '
+      + 'on the cards are both made here. PNG or JPG is fine. A product with no screenshots yet gets its '
+      + 'first one the same way.'));
 
-    const pick = (label, paths, maxW, thumbW) => {
-      const row = el('div', 'item');
-      row.append(el('h3', null, label));
+    const replaceInput = (parent, paths, maxW, thumbW, onDone) => {
       const inp = document.createElement('input');
       inp.type = 'file';
       inp.accept = 'image/*';
-      const note = el('p', 'hint', paths[0]);
+      const note = el('p', 'hint', paths[0] ? paths[0].split('/').pop() : '');
       inp.addEventListener('change', async () => {
         const f = inp.files[0];
         if (!f) return;
@@ -702,25 +798,55 @@
           const big = await toWebp(f, maxW);
           uploads.push({ path: paths[0], file: big });
           if (paths[1]) uploads.push({ path: paths[1], file: await toWebp(f, thumbW) });
-          note.textContent = `Ready: ${f.name} → ${paths.length} file(s), ${Math.round(big.size / 1024)} KB`;
+          note.textContent = `Ready: ${f.name} (${Math.round(big.size / 1024)} KB)`;
           mark('uploads');
-        } catch (e) {
-          note.textContent = String(e.message);
-        }
+          if (onDone) onDone();
+        } catch (e) { note.textContent = String(e.message); }
       });
-      row.append(inp, note);
-      box.append(row);
+      parent.append(inp, note);
     };
 
-    pick('Your portrait', ['shared/profile/avatar.webp'], 960, 0);
+    const portrait = el('div', 'item');
+    portrait.append(el('div', 'itembar').appendChild(el('span', 'itemname', 'Your portrait')).parentElement);
+    const pf = el('div', 'itemfields');
+    replaceInput(pf, ['shared/profile/avatar.webp'], 960, 0);
+    portrait.append(pf);
+    box.append(portrait);
+
     (data.products.products || []).forEach((pr) => {
+      if (!pr.slug) return;
       const shots = [...new Set([pr.lead, ...(pr.shots || [])])].filter(Boolean);
+      const group = el('div', 'item');
+      const bar = el('div', 'itembar');
+      bar.append(el('span', 'itemname', pr.name || pr.slug));
+      bar.append(el('span', 'itemsub', `${shots.length} screenshot${shots.length === 1 ? '' : 's'}`));
+      group.append(bar);
+      const fields = el('div', 'itemfields');
+
       shots.forEach((shot) => {
         const name = String(shot).replace(/\.[a-z0-9]+$/i, '');
-        pick(`${pr.name} · ${name}`,
-             [`shared/creatives/web/${pr.slug}/${name}.webp`,
-              `shared/creatives/web/${pr.slug}/${name}@thumb.webp`], 1600, 640);
+        fields.append(el('label', null, name + (shot === pr.lead ? '  (the one on the card)' : '')));
+        replaceInput(fields, [`shared/creatives/web/${pr.slug}/${name}.webp`,
+                              `shared/creatives/web/${pr.slug}/${name}@thumb.webp`], 1600, 640);
       });
+
+      // adding a screenshot where there was none, which is what a new product needs
+      const addWrap = el('div');
+      addWrap.style.marginTop = '.7rem';
+      addWrap.append(el('label', null, shots.length ? 'Add another screenshot' : 'Add the first screenshot'));
+      const n = String(shots.length + 1).padStart(2, '0');
+      const fresh = `${pr.slug}-${n}`;
+      replaceInput(addWrap, [`shared/creatives/web/${pr.slug}/${fresh}.webp`,
+                             `shared/creatives/web/${pr.slug}/${fresh}@thumb.webp`], 1600, 640, () => {
+        pr.shots = [...(pr.shots || []), `${fresh}.png`];
+        if (!pr.lead) pr.lead = `${fresh}.png`;
+        mark('products');
+        show('Pictures');
+      });
+      fields.append(addWrap);
+
+      group.append(fields);
+      box.append(group);
     });
     return box;
   };
