@@ -63,6 +63,13 @@
   .tabs button.on { background: var(--ink); border-color: var(--ink); color: #fff; }
   .item { border: 1px solid var(--line); border-radius: 11px; padding: .8rem; margin: 0 0 .7rem; }
   .item h3 { margin: 0 0 .2rem; font-size: .95rem; }
+  .itembar { display: flex; align-items: center; gap: .5rem; margin-bottom: .4rem; }
+  .itembar h3 { margin: 0; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .tools { display: flex; gap: .3rem; flex: none; }
+  .tools button { padding: .25rem .55rem; font-size: .78rem; line-height: 1.2; }
+  .tools button:disabled { opacity: .35; cursor: default; }
+  .tools button.danger { color: var(--bad); border-color: #D6454533; }
+  .tools button.danger:hover { background: #D6454510; border-color: var(--bad); }
   .muted { color: var(--ink-3); font-size: .8rem; }
   .gate { max-width: 420px; margin: 12vh auto; }
   .steps { font-size: .84rem; color: var(--ink-2); line-height: 1.65; padding-left: 1.1rem; }
@@ -238,6 +245,59 @@
     parent.append(n);
   };
 
+  // Every list on the site is edited the same way: each entry has its own card
+  // with move-up, move-down and remove, and an Add button underneath. One
+  // function so a new kind of list never behaves differently from the others.
+  const listEditor = (box, { items, key, title, hint, blank, head, body, addLabel }) => {
+    const host = el('div');
+    box.append(el('h2', null, title));
+    if (hint) box.append(el('p', 'hint', hint));
+    box.append(host);
+
+    const draw = () => {
+      host.textContent = '';
+      if (!items.length) host.append(el('p', 'hint', 'Nothing here yet. Add the first one below.'));
+      items.forEach((item, i) => {
+        const card = el('div', 'item');
+        const bar = el('div', 'itembar');
+        const title = el('h3', null, head(item, i) || 'Untitled');
+        bar.append(title);
+        // the card's own heading keeps up with what is being typed into it
+        card.addEventListener('input', () => { title.textContent = head(item, i) || 'Untitled'; });
+        const tools = el('span', 'tools');
+        const btn = (label, aria, fn, disabled) => {
+          const b = el('button', null, label);
+          b.type = 'button';
+          b.setAttribute('aria-label', aria);
+          b.disabled = !!disabled;
+          b.onclick = fn;
+          tools.append(b);
+          return b;
+        };
+        btn('↑', 'Move up', () => { [items[i - 1], items[i]] = [items[i], items[i - 1]]; mark(key); draw(); }, i === 0);
+        btn('↓', 'Move down', () => { [items[i + 1], items[i]] = [items[i], items[i + 1]]; mark(key); draw(); }, i === items.length - 1);
+        const del = btn('Remove', 'Remove this entry', () => {
+          if (!confirm(`Remove "${head(item, i) || 'this entry'}"? It disappears from the site on the next publish.`)) return;
+          items.splice(i, 1);
+          mark(key);
+          draw();
+        });
+        del.className = 'danger';
+        bar.append(tools);
+        card.append(bar);
+        body(card, item, draw);
+        host.append(card);
+      });
+      const add = el('button', 'primary', addLabel || 'Add');
+      add.type = 'button';
+      add.style.marginTop = '.3rem';
+      add.onclick = () => { items.push(blank()); mark(key); draw(); host.lastElementChild?.scrollIntoView({ block: 'center', behavior: 'smooth' }); };
+      host.append(add);
+    };
+    draw();
+    return host;
+  };
+
   const panels = {};
 
   panels['About you'] = () => {
@@ -259,40 +319,76 @@
 
   panels['Experience'] = () => {
     const box = el('div', 'card');
-    box.append(el('h2', null, 'Work and study'));
-    (data.profile.timeline || []).forEach((t) => {
-      const it = el('div', 'item');
-      it.append(el('h3', null, `${t.role || ''} · ${t.org || ''}`));
-      const row = el('div', 'row');
-      field(row, 'Role', t.role, (v) => { t.role = v; mark('profile'); });
-      field(row, 'Organisation', t.org, (v) => { t.org = v; mark('profile'); });
-      it.append(row);
-      const row2 = el('div', 'row');
-      field(row2, 'When', t.when, (v) => { t.when = v; mark('profile'); });
-      field(row2, 'Where', t.where, (v) => { t.where = v; mark('profile'); });
-      it.append(row2);
-      lines(it, 'Points', t.notes, (v) => { t.notes = v; mark('profile'); });
-      box.append(it);
+    listEditor(box, {
+      items: (data.profile.timeline ||= []),
+      key: 'profile',
+      title: 'Work and study',
+      hint: 'Jobs, internships and degrees, in the order they appear on the page.',
+      addLabel: 'Add a job or a degree',
+      blank: () => ({ kind: 'work', role: '', org: '', when: '', where: '', notes: [] }),
+      head: (t) => [t.role, t.org].filter(Boolean).join(' \u00b7 '),
+      body: (card, t, redraw) => {
+        const row = el('div', 'row');
+        field(row, 'Role', t.role, (v) => { t.role = v; mark('profile'); });
+        field(row, 'Organisation', t.org, (v) => { t.org = v; mark('profile'); });
+        card.append(row);
+        const row2 = el('div', 'row');
+        field(row2, 'When', t.when, (v) => { t.when = v; mark('profile'); });
+        field(row2, 'Where', t.where, (v) => { t.where = v; mark('profile'); });
+        card.append(row2);
+        const wrap = el('div');
+        wrap.append(el('label', null, 'Kind'));
+        const sel = el('select');
+        [['work', 'Work'], ['study', 'Study']].forEach(([v, t2]) => {
+          const o = el('option', null, t2); o.value = v; sel.append(o);
+        });
+        sel.value = t.kind || 'work';
+        sel.onchange = () => { t.kind = sel.value; mark('profile'); };
+        wrap.append(sel);
+        card.append(wrap);
+        lines(card, 'Points', t.notes, (v) => { t.notes = v; mark('profile'); });
+      },
     });
     return box;
   };
 
   panels['Products'] = () => {
     const box = el('div', 'card');
-    box.append(el('h2', null, 'Axon products'));
-    box.append(el('p', 'hint', 'Everything a product page says. Each line of the longer boxes becomes its own paragraph.'));
-    (data.products.products || []).forEach((pr) => {
-      const it = el('div', 'item');
-      it.append(el('h3', null, pr.name));
-      field(it, 'Name', pr.name, (v) => { pr.name = v; mark('products'); });
-      field(it, 'Tagline', pr.tagline, (v) => { pr.tagline = v; mark('products'); });
-      field(it, 'Stack', pr.stack, (v) => { pr.stack = v; mark('products'); });
-      field(it, 'Lead (the line under the title)', pr.lead, (v) => { pr.lead = v; mark('products'); }, true);
-      field(it, 'What it gives you', pr.benefit, (v) => { pr.benefit = v; mark('products'); }, true);
-      lines(it, 'The problem — paragraphs', pr.problem, (v) => { pr.problem = v; mark('products'); });
-      lines(it, 'How it works — paragraphs', pr.body, (v) => { pr.body = v; mark('products'); });
-      lines(it, 'Highlights', pr.highlights, (v) => { pr.highlights = v; mark('products'); });
-      box.append(it);
+    listEditor(box, {
+      items: (data.products.products ||= []),
+      key: 'products',
+      title: 'Axon products',
+      hint: 'Everything a product page says. Each line of the longer boxes becomes its own paragraph. '
+          + 'A new product appears as soon as it has a name; add its screenshots in the Pictures tab.',
+      addLabel: 'Add a product',
+      blank: () => ({ slug: '', name: '', tagline: '', category: 'Operations', stack: [],
+                      dir: '', lead: '', shots: [], highlights: [], problem: [], body: [],
+                      benefit: '', onPersonalSite: false }),
+      head: (pr) => pr.name,
+      body: (card, pr) => {
+        const row = el('div', 'row');
+        field(row, 'Name', pr.name, (v) => {
+          pr.name = v;
+          if (!pr.slug) pr.slug = v.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+          mark('products');
+        });
+        field(row, 'Category', pr.category, (v) => { pr.category = v; mark('products'); });
+        card.append(row);
+        field(card, 'Tagline', pr.tagline, (v) => { pr.tagline = v; mark('products'); });
+        lines(card, 'Stack', pr.stack, (v) => { pr.stack = v; mark('products'); });
+        field(card, 'What it gives you', pr.benefit, (v) => { pr.benefit = v; mark('products'); }, true);
+        lines(card, 'The problem \u2014 paragraphs', pr.problem, (v) => { pr.problem = v; mark('products'); });
+        lines(card, 'How it works \u2014 paragraphs', pr.body, (v) => { pr.body = v; mark('products'); });
+        lines(card, 'Highlights', pr.highlights, (v) => { pr.highlights = v; mark('products'); });
+        const show = el('div');
+        show.append(el('label', null, 'Also show on the personal site'));
+        const sel = el('select');
+        [['no', 'No'], ['yes', 'Yes']].forEach(([v, t]) => { const o = el('option', null, t); o.value = v; sel.append(o); });
+        sel.value = pr.onPersonalSite ? 'yes' : 'no';
+        sel.onchange = () => { pr.onPersonalSite = sel.value === 'yes'; mark('products'); };
+        show.append(sel);
+        card.append(show);
+      },
     });
     return box;
   };
@@ -323,16 +419,18 @@
 
   panels['Certificates'] = () => {
     const box = el('div', 'card');
-    box.append(el('h2', null, 'Certifications and competitions'));
-    const list = data.profile.certifications || [];
-    const draw = () => {
-      box.querySelectorAll('.item, .addrow').forEach((n) => n.remove());
-      list.forEach((c, i) => {
-        const it = el('div', 'item');
+    listEditor(box, {
+      items: (data.profile.certifications ||= []),
+      key: 'profile',
+      title: 'Certifications and competitions',
+      addLabel: 'Add a certificate',
+      blank: () => ({ name: '', org: '', when: '', kind: 'certificate' }),
+      head: (c) => c.name,
+      body: (card, c) => {
         const row = el('div', 'row');
         field(row, 'Name', c.name, (v) => { c.name = v; mark('profile'); });
         field(row, 'Issuer', c.org, (v) => { c.org = v; mark('profile'); });
-        it.append(row);
+        card.append(row);
         const row2 = el('div', 'row');
         field(row2, 'When', c.when, (v) => { c.when = v; mark('profile'); });
         const wrap = el('div');
@@ -343,73 +441,92 @@
         sel.onchange = () => { c.kind = sel.value; mark('profile'); };
         wrap.append(sel);
         row2.append(wrap);
-        it.append(row2);
-        const del = el('button', null, 'Remove');
-        del.style.marginTop = '.6rem';
-        del.onclick = () => { list.splice(i, 1); mark('profile'); draw(); };
-        it.append(del);
-        box.append(it);
-      });
-      const add = el('div', 'addrow');
-      const b = el('button', 'primary', 'Add a certificate');
-      b.onclick = () => { list.push({ name: '', org: '', when: '', kind: 'certificate' }); mark('profile'); draw(); };
-      add.append(b);
-      box.append(add);
-    };
-    draw();
+        card.append(row2);
+      },
+    });
     return box;
   };
 
   panels['Skills'] = () => {
     const box = el('div', 'card');
-    box.append(el('h2', null, 'Skill groups'));
-    (data.profile.skills || []).forEach((g) => {
-      const it = el('div', 'item');
-      it.append(el('h3', null, g.group || g.name || 'Group'));
-      field(it, 'Group name', g.group ?? g.name, (v) => { if ('group' in g) g.group = v; else g.name = v; mark('profile'); });
-      lines(it, 'Items', g.items, (v) => { g.items = v; mark('profile'); });
-      box.append(it);
+    listEditor(box, {
+      items: (data.profile.skills ||= []),
+      key: 'profile',
+      title: 'Skill groups',
+      addLabel: 'Add a group',
+      blank: () => ({ group: '', items: [] }),
+      head: (g) => g.group ?? g.name,
+      body: (card, g) => {
+        field(card, 'Group name', g.group ?? g.name, (v) => {
+          if ('name' in g && !('group' in g)) g.name = v; else g.group = v;
+          mark('profile');
+        });
+        lines(card, 'Items', g.items, (v) => { g.items = v; mark('profile'); });
+      },
     });
     return box;
   };
 
   panels['Letters'] = () => {
     const box = el('div', 'card');
-    box.append(el('h2', null, 'Experience letters'));
-    box.append(el('p', 'hint', 'Upload the scan or photo of a letter and it appears on the page.'));
-    (data.profile.letters || []).forEach((L, i) => {
-      const it = el('div', 'item');
-      it.append(el('h3', null, L.org || `Letter ${i + 1}`));
-      field(it, 'Organisation', L.org, (v) => { L.org = v; mark('profile'); });
-      field(it, 'What it is', L.what ?? L.title, (v) => { if ('what' in L) L.what = v; else L.title = v; mark('profile'); });
-      const inp = document.createElement('input');
-      inp.type = 'file'; inp.accept = 'image/*'; inp.style.marginTop = '.6rem';
-      const note = el('p', 'hint', L.image ? `Currently: ${L.image}` : 'No image yet.');
-      inp.addEventListener('change', () => {
-        const f = inp.files[0];
-        if (!f) return;
-        const name = `${(L.org || 'letter').toLowerCase().replace(/[^a-z0-9]+/g, '-')}.${(f.name.split('.').pop() || 'png').toLowerCase()}`;
-        uploads.push({ path: `shared/letters/${name}`, file: f });
-        L.image = `letters/${name}`;
-        note.textContent = `Will upload: ${f.name} → ${name}`;
-        mark('profile'); mark('uploads');
-      });
-      it.append(inp, note);
-      box.append(it);
+    listEditor(box, {
+      items: (data.profile.letters ||= []),
+      key: 'profile',
+      title: 'Experience letters',
+      hint: 'Upload the scan or the photo and it appears on the page.',
+      addLabel: 'Add a letter',
+      blank: () => ({ org: '', what: '', image: null }),
+      head: (L) => L.org,
+      body: (card, L) => {
+        const row = el('div', 'row');
+        field(row, 'Organisation', L.org, (v) => { L.org = v; mark('profile'); });
+        field(row, 'What it is', L.what ?? L.title, (v) => {
+          if ('title' in L && !('what' in L)) L.title = v; else L.what = v;
+          mark('profile');
+        });
+        card.append(row);
+        const inp = document.createElement('input');
+        inp.type = 'file'; inp.accept = 'image/*'; inp.style.marginTop = '.6rem';
+        const note = el('p', 'hint', L.image ? `Currently: ${L.image}` : 'No image yet.');
+        inp.addEventListener('change', async () => {
+          const f = inp.files[0];
+          if (!f) return;
+          const base = (L.org || 'letter').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+          try {
+            const webp = await toWebp(f, 1400);
+            uploads.push({ path: `shared/letters/${base}.webp`, file: webp });
+            L.image = `letters/${base}.webp`;
+            note.textContent = `Ready: ${f.name} \u2192 ${base}.webp (${Math.round(webp.size / 1024)} KB)`;
+            mark('profile'); mark('uploads');
+          } catch (e) { note.textContent = String(e.message); }
+        });
+        card.append(inp, note);
+      },
     });
     return box;
   };
 
   panels['Side projects'] = () => {
     const box = el('div', 'card');
-    box.append(el('h2', null, 'Your own projects'));
-    (data.profile.sideProjects || []).forEach((s) => {
-      const it = el('div', 'item');
-      it.append(el('h3', null, s.name));
-      field(it, 'Name', s.name, (v) => { s.name = v; mark('profile'); });
-      field(it, 'Stack', s.stack, (v) => { s.stack = v; mark('profile'); });
-      field(it, 'Description', s.blurb, (v) => { s.blurb = v; mark('profile'); }, true);
-      box.append(it);
+    listEditor(box, {
+      items: (data.profile.sideProjects ||= []),
+      key: 'profile',
+      title: 'Your own projects',
+      hint: 'The ones built outside the company.',
+      addLabel: 'Add a project',
+      blank: () => ({ slug: '', name: '', stack: '', blurb: '' }),
+      head: (sp) => sp.name,
+      body: (card, sp) => {
+        const row = el('div', 'row');
+        field(row, 'Name', sp.name, (v) => {
+          sp.name = v;
+          if (!sp.slug) sp.slug = v.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+          mark('profile');
+        });
+        field(row, 'Stack', sp.stack, (v) => { sp.stack = v; mark('profile'); });
+        card.append(row);
+        field(card, 'Description', sp.blurb, (v) => { sp.blurb = v; mark('profile'); }, true);
+      },
     });
     return box;
   };
@@ -566,6 +683,24 @@
   /* ------------------------------------------------------------- publish */
   const setStatus = (text, kind) => { const s = $('#status'); s.textContent = text; s.className = `pill ${kind || ''}`; };
 
+  // Published is not the same as live: the last step fetches the real page and
+  // looks for something that was just changed, so "live" means verified.
+  const verifyLive = async () => {
+    const checks = [];
+    if (data.profile && data.profile.name) checks.push(['https://hashirjunaid.me/', data.profile.name]);
+    if (data.copy && data.copy['axon.productsHead']) {
+      checks.push(['https://axonsystems.tech/', data.copy['axon.productsHead']]);
+    }
+    for (const [url, needle] of checks) {
+      try {
+        const html = await (await fetch(`${url}?v=${Date.now()}`, { cache: 'no-store' })).text();
+        const plain = html.replace(/&amp;/g, '&').replace(/&#8217;|&rsquo;/g, "'");
+        if (!plain.includes(needle)) return { ok: false, where: url };
+      } catch { return { ok: false, where: url }; }
+    }
+    return { ok: true };
+  };
+
   const watchBuild = async () => {
     setStatus('publishing', 'work');
     for (let i = 0; i < 40; i++) {
@@ -574,11 +709,26 @@
         const { run } = await ask('status');
         if (!run) continue;
         if (run.status === 'completed') {
-          const good = run.conclusion === 'success';
-          setStatus(good ? 'live' : `build ${run.conclusion}`, good ? 'ok' : 'bad');
-          $('#state').textContent = good
-            ? 'Published. The sites are updated.'
-            : 'The build failed - check Actions on GitHub.';
+          if (run.conclusion !== 'success') {
+            setStatus(`build ${run.conclusion}`, 'bad');
+            $('#state').textContent = 'The build did not finish. Nothing was lost - press Save again, '
+              + 'or check Actions on GitHub.';
+            return;
+          }
+          setStatus('checking', 'work');
+          $('#state').textContent = 'Published. Checking the live pages…';
+          // give the CDN a moment to serve the new copy
+          await new Promise((r) => setTimeout(r, 8000));
+          let v = await verifyLive();
+          if (!v.ok) { await new Promise((r) => setTimeout(r, 12000)); v = await verifyLive(); }
+          if (v.ok) {
+            setStatus('live ✓', 'ok');
+            $('#state').textContent = 'Live and verified on both sites.';
+          } else {
+            setStatus('published', 'work');
+            $('#state').textContent = 'Published, but the live page has not caught up yet. '
+              + 'It usually appears within a minute - refresh the site to check.';
+          }
           return;
         }
         setStatus(String(run.status).replace('_', ' '), 'work');
@@ -587,7 +737,35 @@
     setStatus('still building', 'work');
   };
 
+  // Catches the half-filled entry before it reaches the repository.
+  const problems = () => {
+    const out = [];
+    (data.products.products || []).forEach((pr, i) => {
+      if (!pr.name) out.push(`Product ${i + 1} has no name`);
+      else if (!pr.slug) out.push(`${pr.name} has no address (slug)`);
+    });
+    const slugs = (data.products.products || []).map((p) => p.slug).filter(Boolean);
+    slugs.forEach((sl, i) => { if (slugs.indexOf(sl) !== i) out.push(`Two products share the address "${sl}"`); });
+    (data.profile.timeline || []).forEach((t, i) => {
+      if (!t.role && !t.org) out.push(`Experience entry ${i + 1} is empty`);
+    });
+    (data.profile.certifications || []).forEach((c, i) => {
+      if (!c.name) out.push(`Certificate ${i + 1} has no name`);
+    });
+    (data.profile.sideProjects || []).forEach((sp, i) => {
+      if (!sp.name) out.push(`Side project ${i + 1} has no name`);
+    });
+    return out;
+  };
+
   const save = async () => {
+    const wrong = problems();
+    if (wrong.length) {
+      setStatus('needs a fix', 'bad');
+      $('#state').textContent = wrong.slice(0, 2).join(' · ')
+        + (wrong.length > 2 ? ` · and ${wrong.length - 2} more` : '');
+      return;
+    }
     $('#save').disabled = true;
     setStatus('saving', 'work');
     try {
