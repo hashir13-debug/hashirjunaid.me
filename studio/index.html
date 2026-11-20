@@ -28,7 +28,7 @@
     display: flex; align-items: center; gap: .6rem;
   }
   header b { font-size: 1rem; }
-  .wrap { max-width: 860px; margin: 0 auto; padding: 1rem 1rem 6rem; }
+  .wrap { max-width: 860px; margin: 0 auto; padding: 1rem 1rem 7.5rem; }
   .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 1rem; margin: 0 0 1rem; }
   .card h2 { font-size: .78rem; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3); margin: 0 0 .9rem; }
   label { display: block; font-size: .78rem; color: var(--ink-2); margin: .75rem 0 .25rem; }
@@ -63,9 +63,24 @@
   .tabs button.on { background: var(--ink); border-color: var(--ink); color: #fff; }
   .item { border: 1px solid var(--line); border-radius: 11px; padding: .8rem; margin: 0 0 .7rem; }
   .item h3 { margin: 0 0 .2rem; font-size: .95rem; }
-  .itembar { display: flex; align-items: center; gap: .5rem; margin-bottom: .4rem; }
+  .listhead { display: flex; align-items: center; gap: .6rem; margin-bottom: .2rem; }
+  .listhead h2 { margin: 0; flex: 1; }
+  .listhead .add { flex: none; padding: .45rem .9rem; }
+  .count { margin: 0 0 .7rem; }
+  .item { padding: 0; overflow: hidden; }
+  .item.is-open { border-color: rgb(242 103 14 / .45); box-shadow: 0 6px 18px -12px rgb(242 103 14 / .5); }
+  .itemfields { padding: 0 .8rem .85rem; }
+  .itemtoggle {
+    flex: 1; min-width: 0; display: flex; align-items: center; gap: .5rem; text-align: left;
+    background: none; border: 0; border-radius: 0; padding: .7rem .2rem .7rem .8rem; cursor: pointer;
+  }
+  .itemtoggle:hover { border-color: transparent; color: var(--orange); }
+  .chev { color: var(--ink-3); font-size: .8rem; flex: none; width: .8rem; }
+  .itemname { font-weight: 600; font-size: .92rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .itemsub { color: var(--ink-3); font-size: .8rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .itembar { display: flex; align-items: center; gap: .3rem; }
   .itembar h3 { margin: 0; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .tools { display: flex; gap: .3rem; flex: none; }
+  .tools { display: flex; gap: .25rem; flex: none; padding-right: .6rem; }
   .tools button { padding: .25rem .55rem; font-size: .78rem; line-height: 1.2; }
   .tools button:disabled { opacity: .35; cursor: default; }
   .tools button.danger { color: var(--bad); border-color: #D6454533; }
@@ -75,7 +90,7 @@
   .steps { font-size: .84rem; color: var(--ink-2); line-height: 1.65; padding-left: 1.1rem; }
   .steps code { background: #EEF1F7; border-radius: 5px; padding: .05rem .35rem; font-size: .82rem; }
   .hide { display: none !important; }
-  @media (max-width: 560px) { .wrap { padding: .7rem .7rem 6rem; } .card { padding: .8rem; } }
+  @media (max-width: 560px) { .wrap { padding: .7rem .7rem 8rem; } .card { padding: .8rem; } }
 </style>
 </head>
 <body>
@@ -248,51 +263,92 @@
   // Every list on the site is edited the same way: each entry has its own card
   // with move-up, move-down and remove, and an Add button underneath. One
   // function so a new kind of list never behaves differently from the others.
-  const listEditor = (box, { items, key, title, hint, blank, head, body, addLabel }) => {
+  const listEditor = (box, { items, key, title, hint, blank, head, body, addLabel, summary }) => {
     const host = el('div');
-    box.append(el('h2', null, title));
+    const headRow = el('div', 'listhead');
+    headRow.append(el('h2', null, title));
+    const addTop = el('button', 'primary add', addLabel || 'Add');
+    addTop.type = 'button';
+    headRow.append(addTop);
+    box.append(headRow);
     if (hint) box.append(el('p', 'hint', hint));
-    box.append(host);
+    const count = el('p', 'hint count');
+    box.append(count, host);
+
+    let openIndex = -1;                       // one entry open at a time keeps the list short
+
+    const addOne = () => {
+      items.push(blank());
+      openIndex = items.length - 1;
+      mark(key);
+      draw();
+      host.querySelector('.item.is-open')?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      host.querySelector('.item.is-open input')?.focus();
+    };
+    addTop.onclick = addOne;
 
     const draw = () => {
       host.textContent = '';
-      if (!items.length) host.append(el('p', 'hint', 'Nothing here yet. Add the first one below.'));
+      count.textContent = items.length
+        ? `${items.length} ${items.length === 1 ? 'entry' : 'entries'} \u00b7 tap one to open it`
+        : 'Nothing here yet.';
       items.forEach((item, i) => {
-        const card = el('div', 'item');
+        const open = i === openIndex;
+        const card = el('div', `item${open ? ' is-open' : ''}`);
+
         const bar = el('div', 'itembar');
-        const title = el('h3', null, head(item, i) || 'Untitled');
-        bar.append(title);
-        // the card's own heading keeps up with what is being typed into it
-        card.addEventListener('input', () => { title.textContent = head(item, i) || 'Untitled'; });
+        const toggle = el('button', 'itemtoggle');
+        toggle.type = 'button';
+        toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+        const chev = el('span', 'chev', open ? '\u2228' : '\u203A');
+        const title2 = el('span', 'itemname', head(item, i) || 'Untitled');
+        const sub = el('span', 'itemsub', summary ? summary(item, i) || '' : '');
+        toggle.append(chev, title2, sub);
+        toggle.onclick = () => { openIndex = open ? -1 : i; draw(); };
+        bar.append(toggle);
+
         const tools = el('span', 'tools');
-        const btn = (label, aria, fn, disabled) => {
-          const b = el('button', null, label);
+        const btn = (label, aria, fn, disabled, cls) => {
+          const b = el('button', cls || null, label);
           b.type = 'button';
           b.setAttribute('aria-label', aria);
           b.disabled = !!disabled;
           b.onclick = fn;
           tools.append(b);
-          return b;
         };
-        btn('↑', 'Move up', () => { [items[i - 1], items[i]] = [items[i], items[i - 1]]; mark(key); draw(); }, i === 0);
-        btn('↓', 'Move down', () => { [items[i + 1], items[i]] = [items[i], items[i + 1]]; mark(key); draw(); }, i === items.length - 1);
-        const del = btn('Remove', 'Remove this entry', () => {
+        btn('\u2191', 'Move up', () => {
+          [items[i - 1], items[i]] = [items[i], items[i - 1]];
+          if (openIndex === i) openIndex = i - 1; else if (openIndex === i - 1) openIndex = i;
+          mark(key); draw();
+        }, i === 0);
+        btn('\u2193', 'Move down', () => {
+          [items[i + 1], items[i]] = [items[i], items[i + 1]];
+          if (openIndex === i) openIndex = i + 1; else if (openIndex === i + 1) openIndex = i;
+          mark(key); draw();
+        }, i === items.length - 1);
+        btn('\u2715', 'Remove this entry', () => {
           if (!confirm(`Remove "${head(item, i) || 'this entry'}"? It disappears from the site on the next publish.`)) return;
           items.splice(i, 1);
-          mark(key);
-          draw();
-        });
-        del.className = 'danger';
+          if (openIndex >= items.length) openIndex = -1;
+          mark(key); draw();
+        }, false, 'danger');
         bar.append(tools);
         card.append(bar);
-        body(card, item, draw);
+
+        if (open) {
+          const fields = el('div', 'itemfields');
+          card.addEventListener('input', () => { title2.textContent = head(item, i) || 'Untitled'; });
+          body(fields, item, draw);
+          card.append(fields);
+        }
         host.append(card);
       });
-      const add = el('button', 'primary', addLabel || 'Add');
-      add.type = 'button';
-      add.style.marginTop = '.3rem';
-      add.onclick = () => { items.push(blank()); mark(key); draw(); host.lastElementChild?.scrollIntoView({ block: 'center', behavior: 'smooth' }); };
-      host.append(add);
+
+      const addBottom = el('button', 'primary', addLabel || 'Add');
+      addBottom.type = 'button';
+      addBottom.style.marginTop = '.5rem';
+      addBottom.onclick = addOne;
+      if (items.length > 2) host.append(addBottom);
     };
     draw();
     return host;
@@ -326,7 +382,8 @@
       hint: 'Jobs, internships and degrees, in the order they appear on the page.',
       addLabel: 'Add a job or a degree',
       blank: () => ({ kind: 'work', role: '', org: '', when: '', where: '', notes: [] }),
-      head: (t) => [t.role, t.org].filter(Boolean).join(' \u00b7 '),
+      head: (t) => t.role || t.org || '',
+      summary: (t) => [t.org, t.when].filter(Boolean).join(' \u00b7 '),
       body: (card, t, redraw) => {
         const row = el('div', 'row');
         field(row, 'Role', t.role, (v) => { t.role = v; mark('profile'); });
@@ -365,6 +422,7 @@
                       dir: '', lead: '', shots: [], highlights: [], problem: [], body: [],
                       benefit: '', onPersonalSite: false }),
       head: (pr) => pr.name,
+      summary: (pr) => pr.tagline,
       body: (card, pr) => {
         const row = el('div', 'row');
         field(row, 'Name', pr.name, (v) => {
@@ -426,6 +484,7 @@
       addLabel: 'Add a certificate',
       blank: () => ({ name: '', org: '', when: '', kind: 'certificate' }),
       head: (c) => c.name,
+      summary: (c) => [c.org, c.when].filter(Boolean).join(' · '),
       body: (card, c) => {
         const row = el('div', 'row');
         field(row, 'Name', c.name, (v) => { c.name = v; mark('profile'); });
@@ -456,6 +515,7 @@
       addLabel: 'Add a group',
       blank: () => ({ group: '', items: [] }),
       head: (g) => g.group ?? g.name,
+      summary: (g) => `${(g.items || []).length} items`,
       body: (card, g) => {
         field(card, 'Group name', g.group ?? g.name, (v) => {
           if ('name' in g && !('group' in g)) g.name = v; else g.group = v;
@@ -477,6 +537,7 @@
       addLabel: 'Add a letter',
       blank: () => ({ org: '', what: '', image: null }),
       head: (L) => L.org,
+      summary: (L) => (L.image ? 'image added' : 'no image yet'),
       body: (card, L) => {
         const row = el('div', 'row');
         field(row, 'Organisation', L.org, (v) => { L.org = v; mark('profile'); });
@@ -516,6 +577,7 @@
       addLabel: 'Add a project',
       blank: () => ({ slug: '', name: '', stack: '', blurb: '' }),
       head: (sp) => sp.name,
+      summary: (sp) => sp.stack,
       body: (card, sp) => {
         const row = el('div', 'row');
         field(row, 'Name', sp.name, (v) => {
