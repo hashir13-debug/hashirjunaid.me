@@ -516,7 +516,7 @@
           + 'A new product appears as soon as it has a name; add its screenshots in the Pictures tab.',
       addLabel: 'Add a product',
       blank: () => ({ slug: '', name: '', tagline: '', category: 'Operations', stack: [],
-                      dir: '', lead: '', shots: [], highlights: [], problem: [], body: [],
+                      lead: '', shots: [], highlights: [], problem: [], body: [],
                       benefit: '', onPersonalSite: false }),
       head: (pr) => pr.name,
       summary: (pr) => pr.tagline,
@@ -535,6 +535,25 @@
         lines(card, 'The problem \u2014 paragraphs', pr.problem, (v) => { pr.problem = v; mark('products'); });
         lines(card, 'How it works \u2014 paragraphs', pr.body, (v) => { pr.body = v; mark('products'); });
         lines(card, 'Highlights', pr.highlights, (v) => { pr.highlights = v; mark('products'); });
+        const partRow = el('div', 'row');
+        const part = el('div');
+        part.append(el('label', null, 'Part of another product'));
+        const psel = el('select');
+        const none = el('option', null, 'Stands on its own');
+        none.value = '';
+        psel.append(none);
+        (data.products.products || []).filter((o) => o.slug && o.slug !== pr.slug).forEach((o) => {
+          const op = el('option', null, o.name || o.slug);
+          op.value = o.slug;
+          psel.append(op);
+        });
+        psel.value = pr.partOf || '';
+        psel.onchange = () => { pr.partOf = psel.value || undefined; mark('products'); };
+        part.append(psel);
+        part.append(el('p', 'hint', 'A module counts as part of its parent, not as a separate application.'));
+        partRow.append(part);
+        card.append(partRow);
+
         const show = el('div');
         show.append(el('label', null, 'Also show on the personal site'));
         const sel = el('select');
