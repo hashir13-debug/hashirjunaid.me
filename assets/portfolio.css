@@ -737,3 +737,27 @@ button.pf-letter:hover { transform: translateY(-3px); border-color: var(--pf-ora
     mask-image: linear-gradient(90deg, #000 88%, transparent);
   }
 }
+
+.pf-certcard { position: relative; display: flex; }
+.pf-certcard .pf-certmini { flex: 1; width: 100%; }
+.pf-verify {
+  position: absolute; top: .55rem; right: .55rem; z-index: 2;
+  display: inline-flex; align-items: center; gap: .25rem;
+  font-size: .72rem; font-weight: 600; line-height: 1; text-decoration: none;
+  color: #fff; background: rgb(20 32 58 / .88); backdrop-filter: blur(6px);
+  border-radius: 100px; padding: .42rem .7rem; box-shadow: 0 6px 16px -8px rgb(20 32 58 / .6);
+  transition: background 250ms, transform 250ms;
+}
+.pf-verify:hover, .pf-verify:focus-visible { background: var(--pf-orange); transform: translateY(-1px); }
+.pf-badges a {
+  font-size: .8rem; font-weight: 500; color: var(--pf-ink-2); text-decoration: none;
+  background: #fff; border: 1px solid var(--pf-line); border-radius: 100px; padding: .4rem .85rem;
+  transition: border-color 250ms;
+}
+.pf-badges a b { font-weight: 600; color: var(--pf-orange); margin-left: .25rem; }
+.pf-badges a:hover { border-color: var(--pf-orange); }
+@media (max-width: 720px) {
+  .pf-certcard { flex: 0 0 68%; scroll-snap-align: center; }
+  .pf-certcard .pf-certmini { flex: 1 1 auto; }
+  .pf-badges a { font-size: .72rem; padding: .35rem .7rem; }
+}
