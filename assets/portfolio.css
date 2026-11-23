@@ -768,3 +768,7 @@ button.pf-letter:hover { transform: translateY(-3px); border-color: var(--pf-ora
   .pf-certstrip > * { flex: 0 1 212px; display: flex; }
   .pf-certstrip > * > .pf-certmini { width: 100%; }
 }
+
+@media (hover: none), (max-width: 720px) {
+  .pf-verify { font-size: .78rem; padding: .55rem .85rem; min-height: 32px; }
+}
