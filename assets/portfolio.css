@@ -761,3 +761,10 @@ button.pf-letter:hover { transform: translateY(-3px); border-color: var(--pf-ora
   .pf-certcard .pf-certmini { flex: 1 1 auto; }
   .pf-badges a { font-size: .72rem; padding: .35rem .7rem; }
 }
+
+@media (min-width: 721px) {
+  
+  .pf-certstrip { display: flex; flex-wrap: wrap; justify-content: center; align-items: stretch; }
+  .pf-certstrip > * { flex: 0 1 212px; display: flex; }
+  .pf-certstrip > * > .pf-certmini { width: 100%; }
+}
